@@ -2,6 +2,9 @@ name: Autobuild for Windows
 
 on: [push, workflow_dispatch, repository_dispatch]
 
+env:
+  CMAKE_PREFIX_PATH: "$GITHUB_WORKSPACE/libraries/zstd;$GITHUB_WORKSPACE/libraries/mongoc;$GITHUB_WORKSPACE/libraries/mongocxx;$GITHUB_WORKSPACE/libraries/libuv;$GITHUB_WORKSPACE/libraries/yaml;"
+
 jobs:
   build:
     runs-on: windows-latest
@@ -9,12 +12,16 @@ jobs:
       - name: Install OpenSSL
         shell: powershell
         run: |
-          choco install -y openssl.light
+          choco upgrade -y openssl.light
       - name: Download Zstandard
         uses: suisei-cn/actions-download-file@v1
         with:
           url: "https://github.com/facebook/zstd/archive/refs/heads/dev.tar.gz"
           target: ./
+      - name: Extract Zstandard
+        shell: bash
+        run: |
+          tar -xzf dev.tar.gz
       - name: Setup Zstandard
         working-directory: ./zstd-dev/build/cmake
         shell: bash
