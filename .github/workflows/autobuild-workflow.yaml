@@ -29,11 +29,11 @@ jobs:
         working-directory: ./zstd-dev/build/cmake
         shell: powershell
         run: |
-          cmake --build . --config Release
+          cmake --build . --target install --config Release
       - name: Install OpenSSL
         shell: powershell
         run: |
-          choco upgrade -y openssl.light
+          choco upgrade -y --no-progress openssl.light
       - name: Checkout code
         uses: actions/checkout@v2
       - uses: suisei-cn/actions-download-file@v1
