@@ -1,0 +1,26 @@
+name: Autobuild for Windows
+
+on: [push, workflow_dispatch, repository_dispatch]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - uses: suisei-cn/actions-download-file@v1
+        name: Download mongo-c-driver
+        with:
+          url: "https://github.com/mongodb/mongo-c-driver/archive/refs/heads/master.tar.gz"
+          target: ./
+      - name: Extract mongo-c-driver
+        shell: bash
+        run: |
+          tar -xzf master.tar.gz
+      - name: Compile mongo-c-driver
+        working-directory: ./mongo-c-driver-master
+        shell: bash
+        run: |
+          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/libraries/mongoc \
+            -DENABLE_STATIC=ON -DENABLE_ZLIB=BUNDLED -DENABLE_SSL=OFF -DENABLE_EXTRA_ALIGNMENT=OFF \
+            -DENABLE_TESTS=OFF -DENABLE_EXAMPLES=OFF .
