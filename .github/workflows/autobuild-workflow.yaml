@@ -4,6 +4,7 @@ on: [push, workflow_dispatch, repository_dispatch]
 
 env:
   CMAKE_PREFIX_PATH: "$GITHUB_WORKSPACE/libraries/zstd;$GITHUB_WORKSPACE/libraries/mongoc;$GITHUB_WORKSPACE/libraries/mongocxx;$GITHUB_WORKSPACE/libraries/libuv;$GITHUB_WORKSPACE/libraries/yaml;"
+  PATH: "C:/Strawberry/perl/bin:$PATH"
 
 jobs:
   build:
