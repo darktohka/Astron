@@ -3,7 +3,7 @@ name: Autobuild for Windows
 on: [push, workflow_dispatch, repository_dispatch]
 
 env:
-  CMAKE_PREFIX_PATH: "$GITHUB_WORKSPACE/libraries/zstd;$GITHUB_WORKSPACE/libraries/mongoc;$GITHUB_WORKSPACE/libraries/mongocxx;$GITHUB_WORKSPACE/libraries/libuv;$GITHUB_WORKSPACE/libraries/yaml;"
+  CMAKE_PREFIX_PATH: "${{ env.GITHUB_WORKSPACE }}/libraries/zstd;${{ env.GITHUB_WORKSPACE }}/libraries/mongoc;${{ env.GITHUB_WORKSPACE }}/libraries/mongocxx;${{ env.GITHUB_WORKSPACE }}/libraries/libuv;${{ env.GITHUB_WORKSPACE }}/libraries/yaml;"
 
 jobs:
   build:
@@ -22,7 +22,7 @@ jobs:
         working-directory: ./zstd-dev/build/cmake
         shell: powershell
         run: >
-          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/libraries/zstd
+          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_INSTALL_PREFIX=${{ env.GITHUB_WORKSPACE }}/libraries/zstd
             -DZSTD_LEGACY_SUPPORT=OFF -DZSTD_BUILD_PROGRAMS=OFF -DZSTD_BUILD_CONTRIB=OFF -DZSTD_BUILD_TESTS=OFF
             -DZSTD_BUILD_STATIC=ON -DZSTD_BUILD_SHARED=OFF .
       - name: Compile Zstandard
