@@ -9,19 +9,15 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - name: Install OpenSSL
-        shell: powershell
-        run: |
-          choco upgrade -y openssl.light
       - name: Download Zstandard
         uses: suisei-cn/actions-download-file@v1
         with:
-          url: "https://github.com/facebook/zstd/archive/refs/heads/dev.tar.gz"
+          url: "https://github.com/facebook/zstd/archive/refs/heads/dev.zip"
           target: ./
       - name: Extract Zstandard
         shell: bash
         run: |
-          tar -xzf dev.tar.gz
+          unzip -qq dev.zip
       - name: Setup Zstandard
         working-directory: ./zstd-dev/build/cmake
         shell: bash
@@ -34,6 +30,10 @@ jobs:
         shell: bash
         run: |
           cmake --build . --config Release
+      - name: Install OpenSSL
+        shell: powershell
+        run: |
+          choco upgrade -y openssl.light
       - name: Checkout code
         uses: actions/checkout@v2
       - uses: suisei-cn/actions-download-file@v1
