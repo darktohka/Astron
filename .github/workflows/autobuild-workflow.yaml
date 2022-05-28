@@ -8,14 +8,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Install Boost
-        uses: MarkusJx/install-boost@v2.3.0
-        id: install-boost
-        with:
-          boost_version: "1.79.0"
-          platform_version: "2022"
-          toolset: msvc
-          link: static
       - uses: suisei-cn/actions-download-file@v1
         name: Download mongo-c-driver
         with:
@@ -29,6 +21,6 @@ jobs:
         working-directory: ./mongo-c-driver-master
         shell: bash
         run: |
-           cmake -G"Visual Studio 17 2022 Win64" -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/libraries/mongoc \
-             -DENABLE_STATIC=ON -DENABLE_ZLIB=BUNDLED -DENABLE_SSL=OFF -DENABLE_EXTRA_ALIGNMENT=OFF \
-             -DENABLE_TESTS=OFF -DENABLE_EXAMPLES=OFF .
+          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/libraries/mongoc \
+            -DENABLE_STATIC=ON -DENABLE_ZLIB=BUNDLED -DENABLE_SSL=OFF -DENABLE_EXTRA_ALIGNMENT=OFF \
+            -DENABLE_TESTS=OFF -DENABLE_EXAMPLES=OFF .
