@@ -11,7 +11,7 @@ jobs:
         run: |
           choco install -y openssl.light
       - name: Download Zstandard
-        usees: suisei-cn/actions-download-file@v1
+        uses: suisei-cn/actions-download-file@v1
         with:
           url: "https://github.com/facebook/zstd/archive/refs/heads/dev.tar.gz"
           target: ./
