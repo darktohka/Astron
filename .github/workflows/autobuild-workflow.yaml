@@ -9,10 +9,6 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - name: Setup Perl
-        shell: powershell
-        run: |
-          cpan Pod::Usage
       - name: Download Zstandard
         uses: suisei-cn/actions-download-file@v1
         with:
@@ -31,7 +27,7 @@ jobs:
             -DZSTD_BUILD_STATIC=ON -DZSTD_BUILD_SHARED=OFF
       - name: Compile Zstandard
         working-directory: ./zstd-dev/build/cmake
-        shell: bash
+        shell: powershell
         run: |
           cmake --build . --config Release
       - name: Install OpenSSL
@@ -58,6 +54,6 @@ jobs:
             -DENABLE_SSL=OPENSSL -DENABLE_MONGODB_AWS_AUTH=OFF -DENABLE_EXTRA_ALIGNMENT=OFF -DENABLE_TESTS=OFF -DENABLE_EXAMPLES=OFF .
       - name: Compile mongo-c-driver
         working-directory: ./mongo-c-driver-master
-        shell: bash
+        shell: powershell
         run: |
           cmake --build . --config Release
