@@ -9,12 +9,8 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - name: Setup Path
-        shell: bash
-        run: |
-          echo "C:\Strawberry\perl\bin" >> $GITHUB_PATH
       - name: Setup Perl
-        shell: bash
+        shell: powershell
         run: |
           cpan Pod::Usage
       - name: Download Zstandard
@@ -28,7 +24,7 @@ jobs:
           unzip -qq dev.zip
       - name: Setup Zstandard
         working-directory: ./zstd-dev/build/cmake
-        shell: bash
+        shell: powershell
         run: |
           cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/libraries/zstd \
             -DZSTD_LEGACY_SUPPORT=OFF -DZSTD_BUILD_PROGRAMS=OFF -DZSTD_BUILD_CONTRIB=OFF -DZSTD_BUILD_TESTS=OFF \
@@ -55,7 +51,7 @@ jobs:
           tar -xzf master.tar.gz
       - name: Setup mongo-c-driver
         working-directory: ./mongo-c-driver-master
-        shell: bash
+        shell: powershell
         run: |
           cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/libraries/mongoc \
             -DENABLE_STATIC=ON -DENABLE_ZLIB=OFF -DENABLE_ZSTD=ON -DENABLE_SNAPPY=OFF -DENABLE_SASL=OFF \
