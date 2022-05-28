@@ -22,8 +22,8 @@ jobs:
         working-directory: ./zstd-dev/build/cmake
         shell: powershell
         run: |
-          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/libraries/zstd \
-            -DZSTD_LEGACY_SUPPORT=OFF -DZSTD_BUILD_PROGRAMS=OFF -DZSTD_BUILD_CONTRIB=OFF -DZSTD_BUILD_TESTS=OFF \
+          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/libraries/zstd
+            -DZSTD_LEGACY_SUPPORT=OFF -DZSTD_BUILD_PROGRAMS=OFF -DZSTD_BUILD_CONTRIB=OFF -DZSTD_BUILD_TESTS=OFF
             -DZSTD_BUILD_STATIC=ON -DZSTD_BUILD_SHARED=OFF
       - name: Compile Zstandard
         working-directory: ./zstd-dev/build/cmake
@@ -49,8 +49,8 @@ jobs:
         working-directory: ./mongo-c-driver-master
         shell: powershell
         run: |
-          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/libraries/mongoc \
-            -DENABLE_STATIC=ON -DENABLE_ZLIB=OFF -DENABLE_ZSTD=ON -DENABLE_SNAPPY=OFF -DENABLE_SASL=OFF \
+          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/libraries/mongoc
+            -DENABLE_STATIC=ON -DENABLE_ZLIB=OFF -DENABLE_ZSTD=ON -DENABLE_SNAPPY=OFF -DENABLE_SASL=OFF
             -DENABLE_SSL=OPENSSL -DENABLE_MONGODB_AWS_AUTH=OFF -DENABLE_EXTRA_ALIGNMENT=OFF -DENABLE_TESTS=OFF -DENABLE_EXAMPLES=OFF .
       - name: Compile mongo-c-driver
         working-directory: ./mongo-c-driver-master
