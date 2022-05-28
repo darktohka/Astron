@@ -3,7 +3,7 @@ name: Autobuild for Windows
 on: [push, workflow_dispatch, repository_dispatch]
 
 env:
-  CMAKE_PREFIX_PATH: "${{ env.GITHUB_WORKSPACE }}/libraries/zstd;${{ env.GITHUB_WORKSPACE }}/libraries/mongoc;${{ env.GITHUB_WORKSPACE }}/libraries/mongocxx;${{ env.GITHUB_WORKSPACE }}/libraries/libuv;${{ env.GITHUB_WORKSPACE }}/libraries/yaml;"
+  CMAKE_PREFIX_PATH: "$GITHUB_WORKSPACE/libraries/zstd;$GITHUB_WORKSPACE/libraries/mongoc;$GITHUB_WORKSPACE/libraries/mongocxx;$GITHUB_WORKSPACE/libraries/libuv;$GITHUB_WORKSPACE/libraries/yaml;"
 
 jobs:
   build:
