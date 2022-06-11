@@ -78,6 +78,28 @@ void StateServer::handle_delete_ai(DatagramIterator& dgi, channel_t sender)
     }
 }
 
+void StateServer::handle_get_ai_ready(DatagramIterator& dgi, channel_t sender)
+{
+    channel_t ai_channel = dgi.read_channel();
+    uint32_t context = dgi.read_uint32();
+    bool ready = true;
+
+    for(const auto& it : m_objs) {
+        if(it.second && it.second->m_ai_channel == ai_channel) {
+            ready = false;
+            break;
+        }
+    }
+
+    channel_t channel = control_channel.get_rval(m_roleconfig);
+
+    DatagramPtr dg = Datagram::create(sender, channel, STATESERVER_GET_AI_READY_RESP);
+    dg->add_channel(ai_channel);
+    dg->add_uint32(context);
+    dg->add_bool(ready);
+    route_datagram(dg);
+}
+
 void StateServer::handle_datagram(DatagramHandle, DatagramIterator &dgi)
 {
     channel_t sender = dgi.read_channel();
@@ -93,6 +115,10 @@ void StateServer::handle_datagram(DatagramHandle, DatagramIterator &dgi)
     }
     case STATESERVER_DELETE_AI_OBJECTS: {
         handle_delete_ai(dgi, sender);
+        break;
+    }
+    case STATESERVER_GET_AI_READY: {
+        handle_get_ai_ready(dgi, sender);
         break;
     }
     default:
