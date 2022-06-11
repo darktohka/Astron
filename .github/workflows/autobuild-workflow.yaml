@@ -12,9 +12,9 @@ jobs:
       - name: Install OpenSSL
         shell: powershell
         run: |
-          choco upgrade -y --no-progress openssl.light
+          choco install -y --no-progress openssl.light
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - uses: suisei-cn/actions-download-file@v1
         name: Download mongo-c-driver
         with:
@@ -30,7 +30,8 @@ jobs:
         run: >
           cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/libraries/mongoc `
             -DENABLE_STATIC=ON -DENABLE_ZLIB=BUNDLED -DENABLE_ZSTD=OFF -DENABLE_SNAPPY=OFF -DENABLE_SASL=OFF `
-            -DENABLE_SSL=OPENSSL -DENABLE_MONGODB_AWS_AUTH=OFF -DENABLE_EXTRA_ALIGNMENT=OFF -DENABLE_TESTS=OFF -DENABLE_EXAMPLES=OFF .
+            -DENABLE_SSL=OPENSSL -DENABLE_MONGODB_AWS_AUTH=OFF -DENABLE_EXTRA_ALIGNMENT=OFF -DENABLE_TESTS=OFF -DENABLE_EXAMPLES=OFF `
+            -DOPENSSL_ROOT_DIR.
       - name: Compile mongo-c-driver
         working-directory: ./mongo-c-driver-master
         shell: powershell
