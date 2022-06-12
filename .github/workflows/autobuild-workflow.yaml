@@ -333,6 +333,12 @@ jobs:
         working-directory: ${{ github.workspace }}/libraries/bison
         run: |
           unzip -qq *.zip && rm -f *.zip
+      - name: Create Boost folder
+        if: steps.cache-boost.outputs.cache-hit != 'true'
+        shell: bash
+        working-directory: ${{ github.workspace }}
+        run: >
+          mkdir -p boost libraries/boost/include libraries/boost/cmake
       - name: Install Boost
         if: steps.cache-boost.outputs.cache-hit != 'true'
         uses: MarkusJx/install-boost@v2.3.0
@@ -346,13 +352,13 @@ jobs:
         shell: powershell
         working-directory: boost/boost
         run: >
-          ./bootstrap.bat; ./b2 tools/bcp; mkdir ${{ github.workspace }}/libraries/boost/include; ./dist/bin/bcp icl built
+          ./bootstrap.bat; ./b2 tools/bcp; ./dist/bin/bcp icl built
       - name: Package Boost
         if: steps.cache-boost.outputs.cache-hit != 'true'
         shell: bash
         working-directory: boost/boost/built
         run: >
-          mv boost ${{ github.workspace }}/libraries/boost/include && mkdir ${{ github.workspace }}/libraries/boost/cmake && cp ../tools/cmake/include/* ${{ github.workspace }}/libraries/boost/cmake/ && find "${{ github.workspace }}/libraries/boost"
+          mv boost ${{ github.workspace }}/libraries/boost/include && cp ../tools/cmake/include/* ${{ github.workspace }}/libraries/boost/cmake/ && find "${{ github.workspace }}/libraries/boost"
       - name: Checkout Astron
         uses: actions/checkout@v3
         with:
