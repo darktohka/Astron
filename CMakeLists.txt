@@ -244,7 +244,7 @@ if(BUILD_DBSERVER)
 		endif()
 
 		### MySQL support ###
-		if(Soci_mysql_FOUND)
+		if(FALSE AND Soci_mysql_FOUND)
 			set(BUILD_DB_MYSQL ON CACHE BOOL "If on, will support MySQL.")
 			if(BUILD_DB_MYSQL)
 				find_package(MySQL REQUIRED)
