@@ -101,6 +101,9 @@ set(YAMLCPP_USE_STATIC_LIBS ON CACHE BOOL "If true, will try to find static Yaml
 find_package(yaml-cpp REQUIRED)
 include_directories(${YAML_CPP_INCLUDE_DIR})
 link_directories(${YAML_CPP_LIBRARY_DIR})
+if(YAML_CPP_SHARED_LIBS_BUILT)
+  add_definitions(-DYAML_CPP_STATIC_DEFINE)
+endif()
 message(STATUS "Found the following YamlCpp library:")
 message("  ${YAML_CPP_LIBRARIES}\n")
 
