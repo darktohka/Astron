@@ -3,7 +3,7 @@ name: Autobuild for Windows
 on: [push, workflow_dispatch, repository_dispatch]
 
 env:
-  CMAKE_PREFIX_PATH: "${{ github.workspace }}\\libraries\\bison;${{ github.workspace }}\\libraries\\uvw;${{ github.workspace }}\\libraries\\boost;${{ github.workspace }}\\libraries\\openssl;${{ github.workspace }}\\libraries\\soci;${{ github.workspace }}\\libraries\\mongoc;${{ github.workspace }}\\libraries\\mongocxx;${{ github.workspace }}\\libraries\\libuv;${{ github.workspace }}\\libraries\\yaml;${{ github.workspace }}\\libraries"
+  CMAKE_PREFIX_PATH: "${{ github.workspace }}\\libraries\\sqlite;${{ github.workspace }}\\libraries\\bison;${{ github.workspace }}\\libraries\\uvw;${{ github.workspace }}\\libraries\\boost;${{ github.workspace }}\\libraries\\openssl;${{ github.workspace }}\\libraries\\soci;${{ github.workspace }}\\libraries\\mongoc;${{ github.workspace }}\\libraries\\mongocxx;${{ github.workspace }}\\libraries\\libuv;${{ github.workspace }}\\libraries\\yaml;${{ github.workspace }}\\libraries"
 
 jobs:
   build:
@@ -25,7 +25,9 @@ jobs:
           echo "::set-output name=MONGOC_VERSION::$(curl -sS https://api.github.com/repos/mongodb/mongo-c-driver/releases | jq -r .[0].tag_name)" && \
           FLEXBISON_REPLY="$(curl -Ss https://api.github.com/repos/lexxmark/winflexbison/releases)" && \
           echo "::set-output name=FLEXBISON_BUILD_ID::$(echo $FLEXBISON_REPLY | jq -r .[0].assets[0].id)" && \
-          echo "::set-output name=FLEXBISON_LINK::$(echo $FLEXBISON_REPLY | jq -r .[0].assets[0].browser_download_url)"
+          echo "::set-output name=FLEXBISON_LINK::$(echo $FLEXBISON_REPLY | jq -r .[0].assets[0].browser_download_url)" && \
+          SQLITE_FILENAME="$(curl -Ss https://sqlite.org/download.html | sed -nE "s/^PRODUCT,.*UTC,(.*),.*,.*$/\1/p")" && \
+          echo "::set-output name=SQLITE_HASH::$(echo "$SQLITE_FILENAME" | sha256sum | cut -d ' ' -f 1)"
       - name: Cache OpenSSL
         id: cache-openssl
         uses: actions/cache@v3
@@ -62,12 +64,18 @@ jobs:
         with:
           path: ${{ github.workspace }}/libraries/yaml
           key: ${{ runner.os }}-yaml-${{ steps.query.outputs.YAML_COMMIT }}
+      - name: Cache SQLite3
+        id: cache-sqlite
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/libraries/sqlite
+          key: ${{ runner.os }}-sqlite-${{ steps.query.outputs.SQLITE_HASH }}
       - name: Cache SOCI
         id: cache-soci
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/soci
-          key: ${{ runner.os }}-soci2-${{ steps.query.outputs.SOCI_COMMIT }}
+          key: ${{ runner.os }}-soci4-${{ steps.query.outputs.SOCI_COMMIT }}
       - name: Cache Bison and Flex
         id: cache-bison
         uses: actions/cache@v3
@@ -232,6 +240,53 @@ jobs:
       - name: Build and install yaml-cpp
         if: steps.cache-yaml.outputs.cache-hit != 'true'
         working-directory: yaml
+        shell: powershell
+        run: >
+          cmake --build . --parallel 2 --target install --config Release
+      - name: Create SQLite3 project
+        if: steps.cache-sqlite.outputs.cache-hit != 'true'
+        shell: bash
+        working-directory: sqlite
+        run: >
+          cat <<EOF > CMakeLists.txt
+            PROJECT(sqlite3)
+
+            include_directories(${CMAKE_SOURCE_DIR}/src)
+            add_library(sqlite3 STATIC src/sqlite3.c src/sqlite3.h src/sqlite3ext.h)
+
+            add_definitions(-DSQLITE_ENABLE_RTREE)
+            add_definitions(-DSQLITE_ENABLE_FTS4)
+            add_definitions(-DSQLITE_ENABLE_FTS5)
+            add_definitions(-DSQLITE_ENABLE_JSON1)
+            add_definitions(-DSQLITE_ENABLE_RBU)
+            add_definitions(-DSQLITE_ENABLE_STAT4)
+
+            install(FILES src/sqlite3.h src/sqlite3ext.h DESTINATION include)
+            install(TARGETS sqlite3 LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+          EOF
+      - name: Download SQLite3
+        if: steps.cache-sqlite.outputs.cache-hit != 'true'
+        uses: suisei-cn/actions-download-file@v1
+        with:
+          url: https://sqlite.org/${{ steps.query.outputs.SQLITE_FILENAME }}
+          target: sqlite/
+      - name: Extract SQLite3
+        if: steps.cache-sqlite.outputs.cache-hit != 'true'
+        shell: bash
+        working-directory: sqlite
+        run: |
+          tar -xzf *.tar.gz && rm -f *.tar.gz && mv sqlite-snapshot-* src
+      - name: Setup SQLite3
+        if: steps.cache-sqlite.outputs.cache-hit != 'true'
+        working-directory: sqlite
+        shell: powershell
+        run: >
+          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" `
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/sqlite" `
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_STANDARD=23 .
+      - name: Build and install SQLite3
+        if: steps.cache-sqlite.outputs.cache-hit != 'true'
+        working-directory: sqlite
         shell: powershell
         run: >
           cmake --build . --parallel 2 --target install --config Release
