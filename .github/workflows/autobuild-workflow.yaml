@@ -65,6 +65,11 @@ jobs:
         with:
           path: ${{ github.workspace }}/libraries/soci
           key: ${{ runner.os }}-soci2-${{ steps.query.outputs.SOCI_COMMIT }}
+      - name: Soci
+        shell: bash
+        working-directory: ${{ github.workspace }}/libraries/soci
+        run: |
+          find .
       - name: Cache Boost
         id: cache-boost
         uses: actions/cache@v3
