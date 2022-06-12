@@ -27,6 +27,7 @@ jobs:
           echo "::set-output name=FLEXBISON_BUILD_ID::$(echo $FLEXBISON_REPLY | jq -r .[0].assets[0].id)" && \
           echo "::set-output name=FLEXBISON_LINK::$(echo $FLEXBISON_REPLY | jq -r .[0].assets[0].browser_download_url)" && \
           SQLITE_FILENAME="$(curl -Ss https://sqlite.org/download.html | sed -nE "s/^PRODUCT,.*UTC,(.*),.*,.*$/\1/p")" && \
+          echo "::set-output name=SQLITE_FILENAME::$SQLITE_FILENAME" && \
           echo "::set-output name=SQLITE_HASH::$(echo "$SQLITE_FILENAME" | sha256sum | cut -d ' ' -f 1)"
       - name: Cache OpenSSL
         id: cache-openssl
