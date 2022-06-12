@@ -60,24 +60,5 @@ jobs:
         working-directory: openssl
         run: >
           ./jom install_sw
-      - name: Checkout mongo-c-driver
-        uses: actions/checkout@v3
-        with:
-          repository: "mongodb/mongo-c-driver"
-          ref: "master"
-          path: "mongo-c-driver"
-      - name: Setup mongo-c-driver
-        working-directory: ./mongo-c-driver
-        shell: powershell
-        run: >
-          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/mongoc" `
-            -DENABLE_STATIC=ON -DENABLE_ZLIB=BUNDLED -DENABLE_ZSTD=OFF -DENABLE_SNAPPY=OFF -DENABLE_SASL=OFF `
-            -DENABLE_SSL=OPENSSL -DENABLE_MONGODB_AWS_AUTH=OFF -DENABLE_EXTRA_ALIGNMENT=OFF -DENABLE_TESTS=OFF -DENABLE_EXAMPLES=OFF `
-            .
-      - name: Compile mongo-c-driver
-        working-directory: ./mongo-c-driver
-        shell: powershell
-        run: |
-          cmake --build . --config Release
       - name: Checkout code
         uses: actions/checkout@v3
