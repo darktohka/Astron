@@ -347,6 +347,12 @@ jobs:
           boost_install_dir: "${{ github.workspace }}"
           platform_version: 2022
           toolset: msvc
+      - name: Fix Boost folder
+        if: steps.cache-boost.outputs.cache-hit != 'true'
+        shell: bash
+        working-directory: boost/boost
+        run: |
+          rm -rf boost && cp -r include/boost .
       - name: Build Boost
         if: steps.cache-boost.outputs.cache-hit != 'true'
         shell: powershell
