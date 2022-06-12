@@ -346,7 +346,7 @@ static void bson2bamboo(const dclass::DistributedType *type,
             if(value.type() != bsoncxx::type::k_utf8) {
                 throw ConversionException("Expected string");
             }
-            string str = value.get_utf8().value.to_string();
+            string str(value.get_utf8().value);
             dg.add_data(str);
         }
         break;
@@ -354,7 +354,7 @@ static void bson2bamboo(const dclass::DistributedType *type,
             if(value.type() != bsoncxx::type::k_utf8) {
                 throw ConversionException("Expected string");
             }
-            string str = value.get_utf8().value.to_string();
+            string str(value.get_utf8().value);
             dg.add_string(str);
         }
         break;
@@ -798,7 +798,7 @@ class MongoDatabase : public DatabaseBackend
         // run verify_class so that we know the frontend is happy with what
         // kind of object we just modified.)
         auto obj_v = obj->view();
-        string dclass_name = obj_v["dclass"].get_utf8().value.to_string();
+        string dclass_name(obj_v["dclass"].get_utf8().value);
         const dclass::Class *dclass = g_dcf->get_class_by_name(dclass_name);
         if(!dclass) {
             m_log->error() << "Encountered unknown database object: "
@@ -841,7 +841,7 @@ class MongoDatabase : public DatabaseBackend
         m_log->trace() << "Formatting database snapshot of " << doid << ": "
                        << bsoncxx::to_json(obj) << endl;
 
-        string dclass_name = obj["dclass"].get_utf8().value.to_string();
+        string dclass_name(obj["dclass"].get_utf8().value);
         const dclass::Class *dclass = g_dcf->get_class_by_name(dclass_name);
         if(!dclass) {
             m_log->error() << "Encountered unknown database object: "
@@ -856,7 +856,7 @@ class MongoDatabase : public DatabaseBackend
 
         try {
             for(const auto &it : fields) {
-                string name = it.key().to_string();
+                string name(it.key());
                 const dclass::Field *field = dclass->get_field_by_name(name);
                 if(!field) {
                     m_log->warning() << "Encountered unexpected field " << name
