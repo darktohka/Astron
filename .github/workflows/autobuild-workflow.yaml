@@ -243,6 +243,18 @@ jobs:
         shell: powershell
         run: >
           cmake --build . --parallel 2 --target install --config Release
+      - name: Download SQLite3
+        if: steps.cache-sqlite.outputs.cache-hit != 'true'
+        uses: suisei-cn/actions-download-file@v1
+        with:
+          url: https://sqlite.org/${{ steps.query.outputs.SQLITE_FILENAME }}
+          target: sqlite/
+      - name: Extract SQLite3
+        if: steps.cache-sqlite.outputs.cache-hit != 'true'
+        shell: bash
+        working-directory: sqlite
+        run: |
+          tar -xzf *.tar.gz && rm -f *.tar.gz && mv sqlite-snapshot-* src
       - name: Create SQLite3 project
         if: steps.cache-sqlite.outputs.cache-hit != 'true'
         shell: bash
@@ -264,18 +276,6 @@ jobs:
             install(FILES src/sqlite3.h src/sqlite3ext.h DESTINATION include)
             install(TARGETS sqlite3 LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
           EOF
-      - name: Download SQLite3
-        if: steps.cache-sqlite.outputs.cache-hit != 'true'
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: https://sqlite.org/${{ steps.query.outputs.SQLITE_FILENAME }}
-          target: sqlite/
-      - name: Extract SQLite3
-        if: steps.cache-sqlite.outputs.cache-hit != 'true'
-        shell: bash
-        working-directory: sqlite
-        run: |
-          tar -xzf *.tar.gz && rm -f *.tar.gz && mv sqlite-snapshot-* src
       - name: Setup SQLite3
         if: steps.cache-sqlite.outputs.cache-hit != 'true'
         working-directory: sqlite
