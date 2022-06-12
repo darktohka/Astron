@@ -353,6 +353,7 @@ jobs:
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/build/astron" `
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="/Zc:__cplusplus /EHsc" `
             -DCMAKE_CXX_STANDARD=23 `
+            -DCMAKE_EXE_LINKER_FLAGS="/alternatename:__imp___std_init_once_complete=__imp_InitOnceComplete /alternatename:__imp___std_init_once_begin_initialize=__imp_InitOnceBeginInitialize" `
             .
       - name: Build and install Astron
         working-directory: Astron
