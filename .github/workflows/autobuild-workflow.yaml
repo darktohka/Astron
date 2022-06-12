@@ -15,8 +15,8 @@ jobs:
         id: query
         shell: bash
         run: |
-          echo "::set-output name=MONGOC_COMMIT::$(curl -sS https://api.github.com/repos/mongodb/mongo-c-driver/commits/master | jq -r .sha)" && /
-          echo "::set-output name=MONGOCXX_COMMIT::$(curl -sS https://api.github.com/repos/mongodb/mongo-cxx-driver/commits/master | jq -r .sha)" && /
+          echo "::set-output name=MONGOC_COMMIT::$(curl -sS https://api.github.com/repos/mongodb/mongo-c-driver/commits/master | jq -r .sha)" && \
+          echo "::set-output name=MONGOCXX_COMMIT::$(curl -sS https://api.github.com/repos/mongodb/mongo-cxx-driver/commits/master | jq -r .sha)" && \
           echo "::set-output name=OPENSSL_COMMIT::$(curl -sS https://api.github.com/repos/darktohka/openssl/commits/feature/add-no-apps | jq -r .sha)"
       - name: Cache OpenSSL
         id: cache-openssl
@@ -41,29 +41,29 @@ jobs:
         with:
           repository: "darktohka/openssl"
           ref: "feature/add-no-apps"
-          path: "openssl"
+          path: "D:/openssl"
       - name: Download Jom
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         uses: suisei-cn/actions-download-file@v1
         with:
           url: "https://download.qt.io/official_releases/jom/unstable-jom.zip"
-          target: openssl/
+          target: D:/openssl/
       - name: Unpack Jom
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         shell: bash
-        working-directory: openssl
+        working-directory: D:/openssl
         run: >
           unzip -qq unstable-jom.zip
       - name: Configure OpenSSL
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         shell: powershell
-        working-directory: openssl
+        working-directory: D:/openssl
         run: >
           perl configure VC-WIN64A no-asm no-shared no-tests no-module no-dso no-legacy no-apps `
             --prefix="D:/libraries/openssl" --openssldir="D:/libraries/openssl" /FS
       - name: Build and install OpenSSL
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         shell: powershell
-        working-directory: openssl
+        working-directory: D:/openssl
         run: >
           ./jom install_sw
