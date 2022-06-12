@@ -26,9 +26,10 @@ SET(_SOCI_REQUIRED_VARS  Soci_INCLUDE_DIR Soci_LIBRARY)
 ### FIRST STEP: Find the soci headers.
 #
 FIND_PATH(
-    Soci_INCLUDE_DIR soci.h
+    Soci_INCLUDE_DIR
+    NAMES soci/soci.h
+    PATH_SUFFIXES "" "soci" "include"
 	HINTS "/usr/local"
-    PATH_SUFFIXES "" "soci"
     DOC "Soci (http://soci.sourceforge.net) include directory")
 MARK_AS_ADVANCED(SOCI_INCLUDE_DIR)
 

@@ -9,7 +9,7 @@
 #include "dclass/dc/Class.h"
 #include "dclass/dc/Field.h"
 
-#include <soci.h>
+#include <soci/soci.h>
 
 using namespace std;
 using namespace soci;
