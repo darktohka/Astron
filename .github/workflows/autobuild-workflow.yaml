@@ -19,7 +19,7 @@ jobs:
           echo "::set-output name=MONGOCXX_COMMIT::$(curl -sS https://api.github.com/repos/mongodb/mongo-cxx-driver/commits/master | jq -r .sha)" && \
           echo "::set-output name=OPENSSL_COMMIT::$(curl -sS https://api.github.com/repos/darktohka/openssl/commits/feature/add-no-apps | jq -r .sha)" && \
           echo "::set-output name=LIBUV_COMMIT::$(curl -sS https://api.github.com/repos/libuv/libuv/commits/v1.x | jq -r .sha)" && \
-          echo "::set-output name=UVW_COMMIT::$(curl -sS https://api.github.com/repos/skypjack/uvw/commits/master | jq -r .sha)" && \
+          echo "::set-output name=UVW_COMMIT::$(curl -sS https://api.github.com/repos/darktohka/uvw/commits/patch-1 | jq -r .sha)" && \
           echo "::set-output name=YAML_COMMIT::$(curl -sS https://api.github.com/repos/jbeder/yaml-cpp/commits/master | jq -r .sha)" && \
           echo "::set-output name=SOCI_COMMIT::$(curl -sS https://api.github.com/repos/soci/soci/commits/master | jq -r .sha)" && \
           echo "::set-output name=MONGOC_VERSION::$(curl -sS https://api.github.com/repos/mongodb/mongo-c-driver/releases | jq -r .[0].tag_name)"
@@ -177,8 +177,8 @@ jobs:
         if: steps.cache-uvw.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
         with:
-          repository: "skypjack/uvw"
-          ref: "master"
+          repository: "darktohka/uvw"
+          ref: "patch-1"
           path: "uvw"
       - name: Setup uvw
         if: steps.cache-uvw.outputs.cache-hit != 'true'
