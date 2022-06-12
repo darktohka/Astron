@@ -3,7 +3,7 @@ name: Autobuild for Windows
 on: [push, workflow_dispatch, repository_dispatch]
 
 env:
-  CMAKE_PREFIX_PATH: "${{ github.workspace }}\\libraries\\openssl;${{ github.workspace }}\\libraries\\soci;${{ github.workspace }}\\libraries\\mongoc;${{ github.workspace }}\\libraries\\mongocxx;${{ github.workspace }}\\libraries\\libuv;${{ github.workspace }}\\libraries\\yaml;${{ github.workspace }}\\libraries"
+  CMAKE_PREFIX_PATH: "${{ github.workspace }}\\libraries\\boost;${{ github.workspace }}\\libraries\\openssl;${{ github.workspace }}\\libraries\\soci;${{ github.workspace }}\\libraries\\mongoc;${{ github.workspace }}\\libraries\\mongocxx;${{ github.workspace }}\\libraries\\libuv;${{ github.workspace }}\\libraries\\yaml;${{ github.workspace }}\\libraries"
 
 jobs:
   build:
@@ -217,6 +217,7 @@ jobs:
         uses: MarkusJx/install-boost@v2.3.0
         with:
           boost_version: "1.79.0"
+          boost_install_dir: "${{ github.workspace }}/libraries"
           platform_version: 2022
           toolset: msvc
       - name: Checkout Astron
