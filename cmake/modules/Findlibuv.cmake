@@ -1,6 +1,6 @@
 FIND_PATH(LIBUV_INCLUDE_DIR NAMES uv.h)
 
-FIND_LIBRARY(LIBUV_LIBRARY NAMES uv libuv)
+FIND_LIBRARY(LIBUV_LIBRARY NAMES uv_a libuv_a)
 get_filename_component(LIBUV_LIBRARY_DIR ${LIBUV_LIBRARY} PATH)
 
 include(FindPackageHandleStandardArgs)
@@ -13,4 +13,3 @@ mark_as_advanced(
   LIBUV_INCLUDE_DIR
   LIBUV_LIBRARY_DIR
   LIBUV_LIBRARY)
-
