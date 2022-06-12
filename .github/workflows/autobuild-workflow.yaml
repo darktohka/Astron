@@ -111,6 +111,7 @@ jobs:
         run: >
           cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" `
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/mongocxx" `
+            -DCMAKE_CXX_STANDARD=17 `
             -DBUILD_SHARED_LIBS=OFF -DENABLE_UNINSTALL=OFF -DENABLE_TESTS=OFF `
             .
       - name: Build and install mongo-cxx-driver
