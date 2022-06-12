@@ -62,6 +62,11 @@ jobs:
         with:
           path: ${{ github.workspace }}/libraries/yaml
           key: ${{ runner.os }}-yaml-${{ steps.query.outputs.YAML_COMMIT }}
+      - name: YAML
+        shell: bash
+        working-directory: ${{ github.workspace }}/libraries/yaml
+        run: |
+          find . -iname "*.cmake*" -exec cat {} +
       - name: Cache SOCI
         id: cache-soci
         uses: actions/cache@v3

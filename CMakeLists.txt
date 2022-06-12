@@ -98,11 +98,11 @@ endif()
 
 ### YAML Depedency -- required by config, used by yaml database ###
 set(YAMLCPP_USE_STATIC_LIBS ON CACHE BOOL "If true, will try to find static YamlCpp first instead of dynamic.")
-find_package(YamlCpp REQUIRED)
-include_directories(${YAMLCPP_INCLUDE_DIR})
-link_directories(${YAMLCPP_LIBRARY_DIR})
+find_package(yaml-cpp REQUIRED)
+include_directories(${YAML_CPP_INCLUDE_DIR})
+link_directories(${YAML_CPP_LIBRARY_DIR})
 message(STATUS "Found the following YamlCpp library:")
-message("  ${YAMLCPP_LIBRARY}\n")
+message("  ${YAML_CPP_LIBRARIES}\n")
 
 set(BUILD_YAML ON) # ON CACHE BOOL "Stuff"
 if(BUILD_YAML)
@@ -485,7 +485,7 @@ endif()
 add_subdirectory(src/dclass)
 
 add_dependencies(astrond dclass)
-target_link_libraries(astrond dclass ${YAMLCPP_LIBRARY} ${DB_LIBRARY_NAMES} ${LIBUV_LIBRARY} ${UVW_LIBRARY} ${EXTRA_LIBS})
+target_link_libraries(astrond dclass ${YAML_CPP_LIBRARIES} ${DB_LIBRARY_NAMES} ${LIBUV_LIBRARY} ${UVW_LIBRARY} ${EXTRA_LIBS})
 install(TARGETS astrond DESTINATION bin)
 
 ### Handle some final testing configuration ###
