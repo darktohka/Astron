@@ -338,7 +338,7 @@ jobs:
         shell: bash
         working-directory: ${{ github.workspace }}
         run: >
-          mkdir -p boost libraries/boost/include libraries/boost/cmake
+          mkdir -p boost/boost/built libraries/boost/include libraries/boost/cmake
       - name: Install Boost
         if: steps.cache-boost.outputs.cache-hit != 'true'
         uses: MarkusJx/install-boost@v2.3.0
