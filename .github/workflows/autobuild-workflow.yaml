@@ -255,3 +255,11 @@ jobs:
         shell: bash
         run: |
           for file in $(find . -name "*_*_*.*"); do mv "$file" "${file//_[0-9]}"; done
+      - name: Install Boost
+        if: steps.cache-boost.outputs.cache-hit != 'true'
+        uses: MarkusJx/install-boost@v2.3.0
+        with:
+          boost_version: "1.79.0"
+          boost_install_dir: "${{ github.workspace }}/libraries"
+          platform_version: 2022
+          toolset: msvc
