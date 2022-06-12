@@ -33,19 +33,19 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/mongoc
-          key: ${{ runner.os }}-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}
+          key: ${{ runner.os }}-mongoc-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}
       - name: Cache mongo-cxx-driver
         id: cache-mongocxx
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/mongocxx
-          key: ${{ runner.os }}-mongocxx-${{ steps.query.outputs.MONGOCXX_COMMIT }}
+          key: ${{ runner.os }}-mongocxx-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}-${{ steps.query.outputs.MONGOCXX_COMMIT }}
       - name: Cache libuv
         id: cache-libuv
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/libuv
-          key: ${{ runner.os }}-libuv1-${{ steps.query.outputs.LIBUV_COMMIT }}
+          key: ${{ runner.os }}-uv-${{ steps.query.outputs.LIBUV_COMMIT }}
       - name: Cache yaml-cpp
         id: cache-yaml
         uses: actions/cache@v3
