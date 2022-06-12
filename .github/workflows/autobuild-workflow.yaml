@@ -37,7 +37,7 @@ jobs:
         shell: powershell
         working-directory: openssl
         run: >
-          jom install_sw
+          ./jom install_sw
       - name: Checkout mongo-c-driver
         uses: actions/checkout@v3
         with:
