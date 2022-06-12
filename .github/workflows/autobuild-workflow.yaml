@@ -29,7 +29,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/mongoc
-          key: ${{ runner.os }}--${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}
+          key: ${{ runner.os }}-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}
       - name: Cache mongo-cxx-driver
         id: cache-mongocxx
         uses: actions/cache@v3
@@ -82,7 +82,7 @@ jobs:
         run: >
           cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" `
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/mongoc" `
-            -DCMAKE_CXX_STANDARD=17 -DBUILD_VERSION=1.22.0 `
+            -DCMAKE_CXX_STANDARD=17 -DBUILD_VERSION="1.22.0" `
             -DENABLE_STATIC=ON -DENABLE_ZLIB=BUNDLED -DENABLE_ZSTD=OFF -DENABLE_SNAPPY=OFF -DENABLE_SASL=OFF `
             -DENABLE_SSL=OPENSSL -DENABLE_MONGODB_AWS_AUTH=OFF -DENABLE_EXTRA_ALIGNMENT=OFF -DENABLE_TESTS=OFF -DENABLE_EXAMPLES=OFF `
             .
@@ -112,7 +112,7 @@ jobs:
         run: >
           cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" `
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/mongocxx" `
-            -DCMAKE_CXX_STANDARD=17 -DBUILD_VERSION=1.22.0 `
+            -DCMAKE_CXX_STANDARD=17 -DBUILD_VERSION="1.22.0" `
             -DBUILD_SHARED_LIBS=OFF -DENABLE_UNINSTALL=OFF -DENABLE_TESTS=OFF `
             .
       - name: Build and install mongo-cxx-driver
