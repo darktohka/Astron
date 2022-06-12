@@ -76,7 +76,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/soci
-          key: ${{ runner.os }}-soci4-${{ steps.query.outputs.SOCI_COMMIT }}
+          key: ${{ runner.os }}-soci-${{ steps.query.outputs.SQLITE_HASH }}-${{ steps.query.outputs.SOCI_COMMIT }}
       - name: Cache Bison and Flex
         id: cache-bison
         uses: actions/cache@v3
@@ -263,6 +263,7 @@ jobs:
         run: >
           cat <<EOF > CMakeLists.txt
             PROJECT(sqlite3)
+            cmake_minimum_required(VERSION 3.10)
 
             include_directories(${CMAKE_SOURCE_DIR}/src)
             add_library(sqlite3 STATIC src/sqlite3.c src/sqlite3.h src/sqlite3ext.h)

@@ -11,6 +11,22 @@
 
 #include <soci/soci.h>
 
+#ifdef BUILD_DB_POSTGRESQL
+#include <soci/postgresql/soci-postgresql.h>
+#endif
+
+#ifdef BUILD_DB_MYSQL
+#include <soci/mysql/soci-mysql.h>
+#endif
+
+#ifdef BUILD_DB_SQLITE
+#include <soci/sqlite3/soci-sqlite3.h>
+#endif
+
+#ifdef BUILD_DB_ODBC
+#include <soci/odbc/soci-odbc.h>
+#endif
+
 using namespace std;
 using namespace soci;
 using namespace dclass;
@@ -21,6 +37,7 @@ static ConfigVariable<string> database_name("database", "", soci_backend_config)
 static ConfigVariable<string> database_address("address", "", soci_backend_config);
 static ConfigVariable<string> database_username("username", "", soci_backend_config);
 static ConfigVariable<string> database_password("password", "", soci_backend_config);
+static ConfigVariable<string> database_conn_string("connection_string", "", soci_backend_config);
 
 class SociSQLDatabase : public OldDatabaseBackend
 {
@@ -29,6 +46,7 @@ class SociSQLDatabase : public OldDatabaseBackend
         OldDatabaseBackend(dbeconfig, min_id, max_id), m_min_id(min_id), m_max_id(max_id),
         m_backend(database_driver.get_rval(dbeconfig)),
         m_db_name(database_name.get_rval(dbeconfig)),
+        m_db_conn_str(database_conn_string.get_rval(dbeconfig)),
         m_sess_user(database_username.get_rval(dbeconfig)),
         m_sess_passwd(database_password.get_rval(dbeconfig))
     {
@@ -449,8 +467,9 @@ class SociSQLDatabase : public OldDatabaseBackend
     void connect()
     {
         // Prepare database, username, password, etc for connection
-        stringstream connstring;
-        if(m_backend == "postgresql") {
+#ifdef SOCI_POSTGRESQL_H_INCLUDED
+        if (m_backend == "postgresql") {
+            stringstream connstring;
             connstring << "dbname=" << m_db_name;
             if(!m_sess_user.empty()) {
                 connstring << " user=" << m_sess_user;
@@ -464,16 +483,34 @@ class SociSQLDatabase : public OldDatabaseBackend
             if(m_db_port != 0) {
                 connstring << " port=" << m_db_port;
             }
-        } else if(m_backend == "mysql") {
+            m_sql.open(postgresql, connstring.str());
+            return;
+        }
+#endif
+#ifdef SOCI_MYSQL_H_INCLUDED
+        if (m_backend == "mysql") {
+            stringstream connstring;
             connstring << "db=" << m_db_name << " "
                        << "user=" << m_sess_user << " "
                        << "pass='" << m_sess_passwd << "'";
-        } else if(m_backend == "sqlite3") {
-            connstring << m_db_name;
+            m_sql.open(mysql, connstring.str());
+            return;
         }
+#endif
+#ifdef SOCI_SQLITE3_H_INCLUDED
+        if (m_backend == "sqlite3") {
+            m_sql.open(sqlite3, m_db_name);
+            return;
+        }
+#endif
+#ifdef SOCI_ODBC_H_INCLUDED
+        if (m_backend == "odbc") {
+            m_sql.open(odbc, m_db_conn_str);
+            return;
+        }
+#endif
 
-        // Connect to database
-        m_sql.open(m_backend, connstring.str());
+        m_log->error() << "Unknown SOCI database backend: '" << m_db_name << ".\n";
     }
 
     void check_tables()
@@ -525,7 +562,7 @@ class SociSQLDatabase : public OldDatabaseBackend
     }
   private:
     doid_t m_min_id, m_max_id;
-    string m_backend, m_db_name, m_db_host;
+    string m_backend, m_db_name, m_db_host, m_db_conn_str;
     uint16_t m_db_port;
     string m_sess_user, m_sess_passwd;
     session m_sql;
