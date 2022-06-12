@@ -45,7 +45,7 @@ void NetworkClient::shutdown(std::unique_lock<std::mutex> &lock)
     m_haproxy_handler = nullptr;
 }
 
-void NetworkClient::initialize(const std::shared_ptr<uvw::TcpHandle>& socket,
+void NetworkClient::initialize(const std::shared_ptr<uvw::TCPHandle>& socket,
                                const uvw::Addr &remote,
                                const uvw::Addr &local,
                                const bool haproxy_mode,
@@ -61,7 +61,7 @@ void NetworkClient::initialize(const std::shared_ptr<uvw::TcpHandle>& socket,
     m_socket = socket;
 
     m_socket->noDelay(true);
-    m_socket->keepAlive(true, uvw::TcpHandle::Time{60});
+    m_socket->keepAlive(true, uvw::TCPHandle::Time{60});
 
     m_async_timer = g_loop->resource<uvw::TimerHandle>();
 
@@ -173,7 +173,7 @@ void NetworkClient::start_receive()
     // Sets up all the handlers needed for the NetworkClient instance and starts receiving data from the stream.
     assert(std::this_thread::get_id() == g_main_thread_id);
 
-    m_socket->on<uvw::DataEvent>([self = shared_from_this()](const uvw::DataEvent &event, uvw::TcpHandle &) {
+    m_socket->on<uvw::DataEvent>([self = shared_from_this()](const uvw::DataEvent &event, uvw::TCPHandle &) {
         if(self->m_haproxy_handler != nullptr) {
             size_t bytes_consumed = self->m_haproxy_handler->consume(reinterpret_cast<const uint8_t*>(event.data.get()), event.length);
             if(bytes_consumed < event.length || bytes_consumed == 0) {
@@ -201,26 +201,26 @@ void NetworkClient::start_receive()
                     std::unique_ptr<char[]> overread_bytes = std::make_unique<char[]>(bytes_left);
                     memcpy(overread_bytes.get(), event.data.get() + bytes_consumed, bytes_left);
                     self->process_datagram(overread_bytes, bytes_left);
-                } 
+                }
             }
         } else {
             self->process_datagram(event.data, event.length);
         }
     });
 
-    m_socket->on<uvw::ErrorEvent>([self = shared_from_this()](const uvw::ErrorEvent& event, uvw::TcpHandle &) {
+    m_socket->on<uvw::ErrorEvent>([self = shared_from_this()](const uvw::ErrorEvent& event, uvw::TCPHandle &) {
         self->handle_disconnect((uv_errno_t)event.code());
     });
 
-    m_socket->on<uvw::EndEvent>([self = shared_from_this()](const uvw::EndEvent&, uvw::TcpHandle &) {
+    m_socket->on<uvw::EndEvent>([self = shared_from_this()](const uvw::EndEvent&, uvw::TCPHandle &) {
         self->handle_disconnect(UV_EOF);
     });
 
-    m_socket->on<uvw::CloseEvent>([self = shared_from_this()](const uvw::CloseEvent&, uvw::TcpHandle &) {
+    m_socket->on<uvw::CloseEvent>([self = shared_from_this()](const uvw::CloseEvent&, uvw::TCPHandle &) {
         self->handle_disconnect(UV_EOF);
     });
 
-    m_socket->on<uvw::WriteEvent>([self = shared_from_this()](const uvw::WriteEvent&, uvw::TcpHandle &) {
+    m_socket->on<uvw::WriteEvent>([self = shared_from_this()](const uvw::WriteEvent&, uvw::TCPHandle &) {
         self->send_finished();
     });
 

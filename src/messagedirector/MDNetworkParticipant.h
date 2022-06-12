@@ -5,7 +5,7 @@
 class MDNetworkParticipant : public MDParticipantInterface, public NetworkHandler
 {
   public:
-    MDNetworkParticipant(const std::shared_ptr<uvw::TcpHandle> &socket);
+    MDNetworkParticipant(const std::shared_ptr<uvw::TCPHandle> &socket);
     ~MDNetworkParticipant();
     virtual void initialize()
     {

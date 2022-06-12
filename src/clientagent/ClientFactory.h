@@ -8,7 +8,7 @@ class BaseClientType
 {
   public:
     virtual Client* instantiate(ConfigNode config, ClientAgent* client_agent,
-                                const std::shared_ptr<uvw::TcpHandle> &socket,
+                                const std::shared_ptr<uvw::TCPHandle> &socket,
                                 const uvw::Addr &remote,
                                 const uvw::Addr &local,
                                 const bool haproxy_mode) = 0;
@@ -27,7 +27,7 @@ class ClientType : public BaseClientType
     }
 
     virtual Client* instantiate(ConfigNode config, ClientAgent* client_agent,
-                                const std::shared_ptr<uvw::TcpHandle> &socket,
+                                const std::shared_ptr<uvw::TCPHandle> &socket,
                                 const uvw::Addr &remote,
                                 const uvw::Addr &local,
                                 const bool haproxy_mode)
@@ -44,7 +44,7 @@ class ClientFactory
 
     // instantiate_client creates a new Client object of type 'client_type'.
     Client* instantiate_client(const std::string &client_type, ConfigNode config,
-                               ClientAgent* client_agent, const std::shared_ptr<uvw::TcpHandle> &socket,
+                               ClientAgent* client_agent, const std::shared_ptr<uvw::TCPHandle> &socket,
                                const uvw::Addr &remote,
                                const uvw::Addr &local,
                                const bool haproxy_mode);

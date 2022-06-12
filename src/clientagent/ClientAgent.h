@@ -33,7 +33,7 @@ class ClientAgent final : public Role
     ClientAgent(RoleConfig rolconfig);
 
     // handle_tcp generates a new Client object from a raw tcp connection.
-    void handle_tcp(const std::shared_ptr<uvw::TcpHandle> &socket,
+    void handle_tcp(const std::shared_ptr<uvw::TCPHandle> &socket,
                     const uvw::Addr &remote,
                     const uvw::Addr &local,
                     const bool haproxy_mode);

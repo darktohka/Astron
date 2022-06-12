@@ -2,7 +2,7 @@
 #include "core/global.h"
 #include "core/msgtypes.h"
 
-MDNetworkParticipant::MDNetworkParticipant(const std::shared_ptr<uvw::TcpHandle> &socket)
+MDNetworkParticipant::MDNetworkParticipant(const std::shared_ptr<uvw::TCPHandle> &socket)
     : MDParticipantInterface(), m_client(std::make_shared<NetworkClient>(this))
 {
     set_con_name("Network Participant");

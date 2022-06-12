@@ -41,13 +41,13 @@ public:
     NetworkClient(NetworkHandler *handler);
     ~NetworkClient();
 
-    inline void initialize(const std::shared_ptr<uvw::TcpHandle>& socket)
+    inline void initialize(const std::shared_ptr<uvw::TCPHandle>& socket)
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         initialize(socket, lock);
     }
 
-    inline void initialize(const std::shared_ptr<uvw::TcpHandle>& socket,
+    inline void initialize(const std::shared_ptr<uvw::TCPHandle>& socket,
                            const uvw::Addr& remote,
                            const uvw::Addr& local,
                            const bool haproxy_mode)
@@ -125,12 +125,12 @@ public:
 
 private:
     // Locked versions of public functions:
-    inline void initialize(const std::shared_ptr<uvw::TcpHandle>& socket, std::unique_lock<std::mutex> &lock)
+    inline void initialize(const std::shared_ptr<uvw::TCPHandle>& socket, std::unique_lock<std::mutex> &lock)
     {
         initialize(socket, socket->peer(), socket->sock(), false, lock);
     }
 
-    void initialize(const std::shared_ptr<uvw::TcpHandle>& socket,
+    void initialize(const std::shared_ptr<uvw::TCPHandle>& socket,
                     const uvw::Addr &remote,
                     const uvw::Addr &local,
                     const bool haproxy_mode,
@@ -165,7 +165,7 @@ private:
     char *m_send_buf = nullptr;
 
     NetworkHandler *m_handler;
-    std::shared_ptr<uvw::TcpHandle> m_socket;
+    std::shared_ptr<uvw::TCPHandle> m_socket;
     std::shared_ptr<uvw::TimerHandle> m_async_timer;
     std::unique_ptr<HAProxyHandler> m_haproxy_handler;
     uvw::Addr m_remote;

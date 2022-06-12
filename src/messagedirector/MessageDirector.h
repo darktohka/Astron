@@ -89,7 +89,7 @@ class MessageDirector final : public ChannelMap
     void recall_post_removes(channel_t sender);
 
     // I/O OPERATIONS
-    void handle_connection(const std::shared_ptr<uvw::TcpHandle> &socket);
+    void handle_connection(const std::shared_ptr<uvw::TCPHandle> &socket);
     void handle_error(const uvw::ErrorEvent& evt);
 };
 

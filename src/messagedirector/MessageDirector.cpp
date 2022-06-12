@@ -301,7 +301,7 @@ void MessageDirector::on_remove_range(channel_t lo, channel_t hi)
     }
 }
 
-void MessageDirector::handle_connection(const std::shared_ptr<uvw::TcpHandle> &socket)
+void MessageDirector::handle_connection(const std::shared_ptr<uvw::TCPHandle> &socket)
 {
     uvw::Addr remote = socket->peer();
     m_log.info() << "Got an incoming connection from "

@@ -24,7 +24,7 @@ class NetworkAcceptor
   protected:
     std::unique_ptr<std::thread> m_thread;
     std::shared_ptr<uvw::Loop> m_loop;
-    std::shared_ptr<uvw::TcpHandle> m_acceptor;
+    std::shared_ptr<uvw::TCPHandle> m_acceptor;
 
     bool m_started = false;
     bool m_haproxy_mode = false;

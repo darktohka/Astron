@@ -19,7 +19,7 @@ void MDNetworkUpstream::connect(const std::string &address)
     m_connector->connect(address, 7199, callback, err_callback);
 }
 
-void MDNetworkUpstream::on_connect(const std::shared_ptr<uvw::TcpHandle> &socket)
+void MDNetworkUpstream::on_connect(const std::shared_ptr<uvw::TCPHandle> &socket)
 {
     if(socket == nullptr) {
         m_message_director->receive_disconnect(uvw::ErrorEvent{(int)UV_EADDRNOTAVAIL});

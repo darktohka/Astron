@@ -85,7 +85,7 @@ ClientAgent::ClientAgent(RoleConfig roleconfig) : Role(roleconfig), m_net_accept
 }
 
 // handle_tcp generates a new Client object from a raw tcp connection.
-void ClientAgent::handle_tcp(const std::shared_ptr<uvw::TcpHandle> &socket,
+void ClientAgent::handle_tcp(const std::shared_ptr<uvw::TCPHandle> &socket,
                              const uvw::Addr &remote,
                              const uvw::Addr &local,
                              const bool haproxy_mode)

@@ -59,7 +59,7 @@ class AstronClient : public Client, public NetworkHandler
     Timeout* m_heartbeat_timer = nullptr;
 
   public:
-    AstronClient(ConfigNode config, ClientAgent* client_agent, const std::shared_ptr<uvw::TcpHandle> &socket,
+    AstronClient(ConfigNode config, ClientAgent* client_agent, const std::shared_ptr<uvw::TCPHandle> &socket,
                  const uvw::Addr &remote, const uvw::Addr &local, const bool haproxy_mode) :
         Client(config, client_agent), m_client(std::make_shared<NetworkClient>(this)),
         m_config(config),

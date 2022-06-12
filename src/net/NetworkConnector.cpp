@@ -38,14 +38,14 @@ void NetworkConnector::connect(const std::string &address, unsigned int default_
     m_connect_callback = callback;
     m_err_callback = err_callback;
 
-    m_socket = m_loop->resource<uvw::TcpHandle>();
+    m_socket = m_loop->resource<uvw::TCPHandle>();
 
-    m_socket->once<uvw::ConnectEvent>([self = shared_from_this()](const uvw::ConnectEvent &, uvw::TcpHandle&) {
+    m_socket->once<uvw::ConnectEvent>([self = shared_from_this()](const uvw::ConnectEvent &, uvw::TCPHandle&) {
         if(self->m_connect_callback != nullptr)
             self->m_connect_callback(self->m_socket);
     });
 
-    m_socket->once<uvw::ErrorEvent>([self = shared_from_this()](const uvw::ErrorEvent &evt, uvw::TcpHandle&) {
+    m_socket->once<uvw::ErrorEvent>([self = shared_from_this()](const uvw::ErrorEvent &evt, uvw::TCPHandle&) {
         if(self->m_err_callback != nullptr)
             self->m_err_callback(evt);
     });

@@ -17,7 +17,7 @@ void NetworkAcceptor::bind(const std::string &address,
 {
     assert(std::this_thread::get_id() == g_main_thread_id);
 
-    m_acceptor = m_loop->resource<uvw::TcpHandle>();
+    m_acceptor = m_loop->resource<uvw::TCPHandle>();
     m_acceptor->simultaneousAccepts(true);
 
     std::vector<uvw::Addr> addresses = resolve_address(address, default_port, m_loop);
@@ -45,7 +45,7 @@ void NetworkAcceptor::start()
     }
 
     m_started = true;
-    
+
     // Queue listener for loop.
     m_acceptor->listen();
 }
