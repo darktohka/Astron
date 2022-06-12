@@ -39,7 +39,7 @@ SET(Soci_INCLUDE_DIRS ${Soci_INCLUDE_DIR} CACHE STRING "")
 #
 FIND_LIBRARY(
     Soci_LIBRARY
-    NAMES soci_core
+    NAMES soci_core libsoci_core
     HINTS ${Soci_INCLUDE_DIR}/../lib
     PATH_SUFFIXES libsoci_core)
 MARK_AS_ADVANCED(SOCI_LIBRARY)
@@ -79,7 +79,7 @@ IF(Soci_INCLUDE_DIR AND Soci_LIBRARY)
 
         FIND_LIBRARY(
             Soci_${plugin}_PLUGIN
-            NAMES soci_${plugin}
+            NAMES soci_${plugin} lbsoci_${plugin}
             HINTS ${Soci_INCLUDE_DIR}/../lib
             PATH_SUFFIXES libsoci_${plugin})
         MARK_AS_ADVANCED(Soci_${plugin}_PLUGIN)
