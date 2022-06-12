@@ -189,7 +189,7 @@ jobs:
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/uvw" `
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="/Zc:__cplusplus" `
             -DCMAKE_CXX_STANDARD=23 -DBUILD_UVW_LIBS=ON -DBUILD_UVW_SHARED_LIB=OFF -DBUILD_UVW_LIBS=ON `
-            -DBUILD_TESTING=OFF -DBUILD_DOCS=OFF ..
+            -DBUILD_TESTING=OFF -DBUILD_DOCS=OFF -DFETCH_LIBUV=OFF ..
       - name: Build and install uvw
         if: steps.cache-uvw.outputs.cache-hit != 'true'
         working-directory: uvw/build
