@@ -188,7 +188,7 @@ jobs:
           cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" `
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/uvw" `
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="/Zc:__cplusplus" `
-            -DCMAKE_CXX_STANDARD=23 -DBUILD_UVW_LIBS=ON -DBUILD_UVW_SHARED_LIB=OFF -DBUILD_UVW_LIBS=ON `
+            -DCMAKE_CXX_STANDARD=23 -DBUILD_UVW_SHARED_LIB=OFF -DBUILD_UVW_LIBS=ON `
             -DBUILD_TESTING=OFF -DBUILD_DOCS=OFF -DFETCH_LIBUV=OFF -DFIND_LIBUV=ON ..
       - name: Build and install uvw
         if: steps.cache-uvw.outputs.cache-hit != 'true'
