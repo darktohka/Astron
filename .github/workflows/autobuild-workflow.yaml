@@ -105,7 +105,7 @@ jobs:
         shell: bash
         working-directory: mongo-cxx-driver
         run: |
-          for dir in "benchmark docs examples" do rm -rf $dir; mkdir -p $dir; touch $dir/CMakeLists.txt; done
+          for dir in "benchmark docs examples"; do rm -rf $dir; mkdir -p $dir; touch $dir/CMakeLists.txt; done
       - name: Setup mongo-cxx-driver
         if: steps.cache-mongocxx.outputs.cache-hit != 'true'
         working-directory: ./mongo-cxx-driver
