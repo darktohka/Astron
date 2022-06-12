@@ -255,6 +255,17 @@ if(BUILD_DBSERVER)
 			message("	 won't add SQLite3 support")
 		endif()
 
+		### ODBC support ###
+		if(Soci_odbc_FOUND)
+			set(BUILD_DB_ODBC ON CACHE BOOL "If on, will support ODBC.")
+			message(STATUS "  ODBC found")
+			message("	 ${Soci_odbc_PLUGIN}")
+		else()
+			unset(BUILD_DB_ODBC CACHE)
+			message(STATUS "  ODBC not found")
+			message("	 won't add ODBC support")
+		endif()
+
 		message("")
 
 		### Add files to compiler and linker ###
@@ -281,6 +292,9 @@ if(BUILD_DBSERVER)
 			endif()
 			if(BUILD_DB_SQLITE)
 				list(APPEND DB_LIBRARY_NAMES soci_sqlite3)
+			endif()
+			if(BUILD_DB_ODBC)
+				list(APPEND DB_LIBRARY_NAMES soci_odbc)
 			endif()
 		endif()
 	else()
