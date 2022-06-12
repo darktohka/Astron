@@ -341,26 +341,3 @@ jobs:
           boost_install_dir: "${{ github.workspace }}/libraries"
           platform_version: 2022
           toolset: msvc
-      - name: Checkout Astron
-        uses: actions/checkout@v3
-        with:
-          path: "Astron"
-      - name: Setup Astron
-        working-directory: Astron
-        shell: powershell
-        run: >
-          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" `
-            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/build/astron" `
-            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="/Zc:__cplusplus /EHsc" `
-            -DCMAKE_CXX_STANDARD=23 `
-            .
-      - name: Build and install Astron
-        working-directory: Astron
-        shell: powershell
-        run: >
-          cmake --build . --parallel 2 --target install --config Release
-      - name: Upload Astron
-        uses: actions/upload-artifact@v3
-        with:
-          name: astron-windows
-          path: ${{ github.workspace }}/build/astron/bin/astrond.exe
