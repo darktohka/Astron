@@ -116,6 +116,13 @@ link_directories(${LIBUV_LIBRARY_DIR})
 message(STATUS "Found the libuv library:")
 message("	${LIBUV_LIBRARY}\n")
 
+# uvw dependency -- required by networking
+find_package(uvw REQUIRED)
+include_directories(${UVW_INCLUDE_DIR})
+link_directories(${UVW_LIBRARY_DIR})
+message(STATUS "Found the uvw library:")
+message("	${UVW_LIBRARY}\n")
+
 # We only really need this for Boost's ICL at this point, but until it's fully deprecated:
 find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
@@ -457,7 +464,7 @@ endif()
 add_subdirectory(src/dclass)
 
 add_dependencies(astrond dclass)
-target_link_libraries(astrond dclass ${YAMLCPP_LIBRARY} ${DB_LIBRARY_NAMES} ${LIBUV_LIBRARY} ${EXTRA_LIBS})
+target_link_libraries(astrond dclass ${YAMLCPP_LIBRARY} ${DB_LIBRARY_NAMES} ${LIBUV_LIBRARY} ${UVW_LIBRARY} ${EXTRA_LIBS})
 install(TARGETS astrond DESTINATION bin)
 
 ### Handle some final testing configuration ###

@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-#include "deps/uvw/uvw.hpp"
+#include <uvw.hpp>
 #include "util/Datagram.h"
 
 // This is a convenience class for building up MessagePack logs.

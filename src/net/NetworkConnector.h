@@ -1,5 +1,5 @@
 #pragma once
-#include "deps/uvw/uvw.hpp"
+#include <uvw.hpp>
 
 typedef std::function<void(const std::shared_ptr<uvw::TcpHandle> &)> ConnectCallback;
 typedef std::function<void(const uvw::ErrorEvent& evt)> ConnectErrorCallback;

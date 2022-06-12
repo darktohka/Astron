@@ -4,7 +4,7 @@
 #include <mutex>
 #include <thread>
 #include "core/global.h"
-#include "deps/uvw/uvw.hpp"
+#include <uvw.hpp>
 
 typedef std::function<void()> TaskCallback;
 

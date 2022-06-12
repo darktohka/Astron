@@ -2,7 +2,7 @@
 #include <functional>
 #include <atomic>
 #include <memory>
-#include "deps/uvw/uvw.hpp"
+#include <uvw.hpp>
 #include "util/TaskQueue.h"
 
 // This class abstracts the uvw::TimerHandle timer in order to provide a generic
@@ -57,4 +57,3 @@ class Timeout
 };
 
 typedef std::function<void(Timeout*)> TimeoutSetCallback;
-

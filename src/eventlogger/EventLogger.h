@@ -5,7 +5,7 @@
 #include "core/global.h"
 #include "core/Role.h"
 #include "util/Datagram.h"
-#include "deps/uvw/uvw.hpp"
+#include <uvw.hpp>
 
 // An EventLogger is a role in the daemon that opens up a local socket and reads UDP packets from
 // that socket.  Received UDP packets will be logged as configured by the daemon config file.
@@ -22,7 +22,7 @@ class EventLogger final : public Role
     std::string m_file_format;
     std::unique_ptr<std::ofstream> m_file;
     uvw::Addr m_local;
-    
+
     void bind(const std::string &addr);
     void open_log();
     void cycle_log();

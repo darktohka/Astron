@@ -2,7 +2,7 @@
 #include <vector>
 #include <queue>
 #include <mutex>
-#include "deps/uvw/uvw.hpp"
+#include <uvw.hpp>
 #include "util/Datagram.h"
 #include "util/TaskQueue.h"
 #include "HAProxyHandler.h"
@@ -157,7 +157,7 @@ private:
     void process_datagram(const std::unique_ptr<char[]>& data, size_t length);
 
     inline bool is_connected(std::unique_lock<std::mutex>&)
-    {   
+    {
         return m_socket != nullptr;
     }
 

@@ -1,4 +1,4 @@
-#include <deps/uvw/uvw.hpp>
+#include <uvw.hpp>
 
 bool is_valid_address(const std::string &hostspec);
 
