@@ -117,7 +117,7 @@ message(STATUS "Found the libuv library:")
 message("	${LIBUV_LIBRARY}\n")
 
 # uvw dependency -- required by networking
-find_package(uv::uv-static REQUIRED)
+find_package(uvw REQUIRED)
 include_directories(${UVW_INCLUDE_DIR})
 link_directories(${UVW_LIBRARY_DIR})
 message(STATUS "Found the uvw library:")
