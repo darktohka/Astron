@@ -79,7 +79,7 @@ IF(Soci_INCLUDE_DIR AND Soci_LIBRARY)
 
         FIND_LIBRARY(
             Soci_${plugin}_PLUGIN
-            NAMES soci_${plugin} lbsoci_${plugin}
+            NAMES soci_${plugin} libsoci_${plugin}
             HINTS ${Soci_INCLUDE_DIR}/../lib
             PATH_SUFFIXES libsoci_${plugin})
         MARK_AS_ADVANCED(Soci_${plugin}_PLUGIN)
