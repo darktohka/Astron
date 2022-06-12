@@ -344,7 +344,7 @@ jobs:
         uses: MarkusJx/install-boost@v2.3.0
         with:
           boost_version: "1.79.0"
-          boost_install_dir: "${{ github.workspace }}/boost"
+          boost_install_dir: "${{ github.workspace }}"
           platform_version: 2022
           toolset: msvc
       - name: Build Boost
