@@ -117,7 +117,7 @@ message(STATUS "Found the libuv library:")
 message("	${LIBUV_LIBRARY}\n")
 
 # We only really need this for Boost's ICL at this point, but until it's fully deprecated:
-find_package(Boost COMPONENTS REQUIRED icl)
+find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 
 set(USE_32BIT_DATAGRAMS OFF CACHE BOOL
