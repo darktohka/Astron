@@ -88,7 +88,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/boost
-          key: ${{ runner.os }}-boost
+          key: ${{ runner.os }}-boost2
       - name: Checkout OpenSSL
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
@@ -338,9 +338,21 @@ jobs:
         uses: MarkusJx/install-boost@v2.3.0
         with:
           boost_version: "1.79.0"
-          boost_install_dir: "${{ github.workspace }}/libraries"
+          boost_install_dir: "${{ github.workspace }}/boost"
           platform_version: 2022
           toolset: msvc
+      - name: Build Boost
+        if: steps.cache-boost.outputs.cache-hit != 'true'
+        shell: powershell
+        working-directory: boost/boost
+        run: >
+          ./bootstrap.bat; ./b2 tools/bcp; mkdir ${{ github.workspace }}/libraries/boost/include; ./dist/bin/bcp icl built
+      - name: Package Boost
+        if: steps.cache-boost.outputs.cache-hit != 'true'
+        shell: bash
+        working-directory: boost/boost/built
+        run: >
+          mv boost ${{ github.workspace }}/libraries/boost/include && mkdir ${{ github.workspace }}/libraries/boost/cmake && cp ../tools/cmake/include/* ${{ github.workspace }}/libraries/boost/cmake/ && find "${{ github.workspace }}/libraries/boost"
       - name: Checkout Astron
         uses: actions/checkout@v3
         with:
