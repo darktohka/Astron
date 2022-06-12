@@ -185,8 +185,10 @@ if(BUILD_DBSERVER)
 	endif()
 
 	### Check for the presence of the MongoDB client library ###
-	find_package(mongocxx QUIET)
-	find_package(bsoncxx QUIET)
+	find_package(libmongocxx QUIET)
+	find_package(libbsoncxx QUIET)
+	find_package(libmongocxx-static QUIET)
+	find_package(libbsoncxx-static QUIET)
 
 	if(LIBMONGOCXX_LIBRARIES OR LIBMONGOCXX_STATIC_LIBRARIES)
 		set(BUILD_DB_MONGO ON CACHE BOOL "If on, will support MongoDB.")
