@@ -80,7 +80,7 @@ class SociSQLDatabase : public OldDatabaseBackend
         m_log->warning() << "Creating new SQL object..." << endl;
         try {
             m_sql.begin(); // Start transaction
-            m_sql << "SELECT COALESCE(MIN(t.id) + 1, 0) FROM objects t LEFT OUTER JOIN objects t2 ON t.id = t2.id - 1 WHERE t2.id IS NULL;", into(do_id);
+            m_sql << "SELECT COALESCE(MIN(t.id) + 1, 1) FROM objects t LEFT OUTER JOIN objects t2 ON t.id = t2.id - 1 WHERE t2.id IS NULL;", into(do_id);
 
             m_log->warning() << "Creating new SQL object with do id... " << do_id << endl;
             // Check if next available id is within range
