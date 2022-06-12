@@ -3,7 +3,7 @@ name: Autobuild for Windows
 on: [push, workflow_dispatch, repository_dispatch]
 
 env:
-  CMAKE_PREFIX_PATH: "D:/libraries/openssl;D:/libraries/zstd;D:/libraries/mongoc;D:/libraries/mongocxx;D:/libraries/libuv;D:/libraries/yaml;"
+  CMAKE_PREFIX_PATH: "$GITHUB_WORKSPACE/libraries/openssl;$GITHUB_WORKSPACE/libraries/zstd;$GITHUB_WORKSPACE/libraries/mongoc;$GITHUB_WORKSPACE/libraries/mongocxx;$GITHUB_WORKSPACE/libraries/libuv;$GITHUB_WORKSPACE/libraries/yaml;"
 
 jobs:
   build:
@@ -22,48 +22,48 @@ jobs:
         id: cache-openssl
         uses: actions/cache@v3
         with:
-          path: D:/libraries/openssl
+          path: ${{ github.workspace }}/libraries/openssl
           key: ${{ runner.os }}-openssl-${{ steps.query.outputs.OPENSSL_COMMIT }}
       - name: Cache mongo-c-driver
         id: cache-mongo-c-driver
         uses: actions/cache@v3
         with:
-          path: D:/libraries/mongoc
+          path: ${{ github.workspace }}/libraries/mongoc
           key: ${{ runner.os }}-mongoc-${{ steps.query.outputs.MONGOC_COMMIT }}
       - name: Cache mongo-cxx-driver
         id: cache-mongo-cxx-driver
         uses: actions/cache@v3
         with:
-          path: D:/libraries/mongocxx
+          path: ${{ github.workspace }}/libraries/mongocxx
           key: ${{ runner.os }}-mongocxx-${{ steps.query.outputs.MONGOCXX_COMMIT }}
       - name: Checkout OpenSSL
         uses: actions/checkout@v3
         with:
           repository: "darktohka/openssl"
           ref: "feature/add-no-apps"
-          path: "D:/openssl"
+          path: "openssl"
       - name: Download Jom
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         uses: suisei-cn/actions-download-file@v1
         with:
           url: "https://download.qt.io/official_releases/jom/unstable-jom.zip"
-          target: D:/openssl/
+          target: openssl/
       - name: Unpack Jom
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         shell: bash
-        working-directory: D:/openssl
+        working-directory: openssl
         run: >
           unzip -qq unstable-jom.zip
       - name: Configure OpenSSL
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         shell: powershell
-        working-directory: D:/openssl
+        working-directory: openssl
         run: >
           perl configure VC-WIN64A no-asm no-shared no-tests no-module no-dso no-legacy no-apps `
-            --prefix="D:/libraries/openssl" --openssldir="D:/libraries/openssl" /FS
+            --prefix="${{ github.workspace }}\libraries\openssl" --openssldir="${{ github.workspace }}\libraries\openssl" /FS
       - name: Build and install OpenSSL
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         shell: powershell
-        working-directory: D:/openssl
+        working-directory: openssl
         run: >
           ./jom install_sw
