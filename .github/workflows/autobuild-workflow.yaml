@@ -18,6 +18,7 @@ jobs:
           echo "::set-output name=MONGOC_COMMIT::$(curl -sS https://api.github.com/repos/mongodb/mongo-c-driver/commits/master | jq -r .sha)" && \
           echo "::set-output name=MONGOCXX_COMMIT::$(curl -sS https://api.github.com/repos/mongodb/mongo-cxx-driver/commits/master | jq -r .sha)" && \
           echo "::set-output name=OPENSSL_COMMIT::$(curl -sS https://api.github.com/repos/darktohka/openssl/commits/feature/add-no-apps | jq -r .sha)" && \
+          echo "::set-output name=LIBUV_COMMIT::$(curl -sS https://api.github.com/repos/libuv/libuv/commits/v1.x | jq -r .sha)" && \
           echo "::set-output name=MONGOC_VERSION::$(curl -sS https://api.github.com/repos/mongodb/mongo-c-driver/releases | jq -r .[0].tag_name)"
       - name: Cache OpenSSL
         id: cache-openssl
@@ -37,6 +38,12 @@ jobs:
         with:
           path: ${{ github.workspace }}/libraries/mongocxx
           key: ${{ runner.os }}-mongocxx-${{ steps.query.outputs.MONGOCXX_COMMIT }}
+      - name: Cache libuv
+        id: cache-libuv
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/libraries/libuv
+          key: ${{ runner.os }}-libuv-${{ steps.query.outputs.LIBUV_COMMIT }}
       - name: Checkout OpenSSL
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
@@ -121,6 +128,28 @@ jobs:
       - name: Build and install mongo-cxx-driver
         if: steps.cache-mongocxx.outputs.cache-hit != 'true'
         working-directory: ./mongo-cxx-driver
+        shell: powershell
+        run: >
+          cmake --build . --target install --config Release
+      - name: Checkout libuv
+        if: steps.cache-libuv.outputs.cache-hit != 'true'
+        uses: actions/checkout@v3
+        with:
+          repository: "libuv/libuv"
+          ref: "v1.x"
+          path: "libuv"
+      - name: Setup libuv
+        if: steps.cache-libuv.outputs.cache-hit != 'true'
+        working-directory: ./libuv
+        shell: powershell
+        run: >
+          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" `
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/libuv" `
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="/Zc:__cplusplus" `
+            -DCMAKE_CXX_STANDARD=23 -DLIBUV_BUILD_TESTS=OFF -DLIBUV_BUILD_BENCH=OFF .
+      - name: Build and install libuv
+        if: steps.cache-libuv.outputs.cache-hit != 'true'
+        working-directory: ./libuv
         shell: powershell
         run: >
           cmake --build . --target install --config Release
