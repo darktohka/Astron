@@ -363,8 +363,8 @@ jobs:
         if: steps.cache-boost.outputs.cache-hit != 'true'
         shell: bash
         working-directory: boost/boost/built
-        run: >
-          mv boost ${{ github.workspace }}/libraries/boost/include && cp ../tools/cmake/include/* ${{ github.workspace }}/libraries/boost/cmake/ && find "${{ github.workspace }}/libraries/boost"
+        run: |
+          mv boost "${{ github.workspace }}/libraries/boost/include/" && cp ../tools/cmake/include/*.cmake "${{ github.workspace }}/libraries/boost/cmake/" && find "${{ github.workspace }}/libraries/boost"
       - name: Checkout Astron
         uses: actions/checkout@v3
         with:
