@@ -88,3 +88,27 @@ jobs:
         shell: powershell
         run: >
           cmake --build . --target install --config Release
+      - name: Checkout mongo-cxx-driver
+        uses: actions/checkout@v3
+        with:
+          repository: "mongodb/mongo-cxx-driver"
+          ref: "master"
+          path: "mongo-cxx-driver"
+      - name: Cleanup mongo-cxx-driver
+        shell: bash
+        working-directory: mongo-cxx-driver
+        run: |
+          rm -rf benchmark docs examples
+      - name: Setup mongo-cxx-driver
+        working-directory: ./mongo-cxx-driver
+        shell: powershell
+        run: >
+          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" `
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/mongocxx" `
+            -DBUILD_SHARED_LIBS=OFF -DENABLE_UNINSTALL=OFF -DBUILD_VERSION=1.0.0 -DENABLE_TESTS=OFF `
+            .
+      - name: Build and install mongo-cxx-driver
+        working-directory: ./mongo-cxx-driver
+        shell: powershell
+        run: >
+          cmake --build . --target install --config Release
