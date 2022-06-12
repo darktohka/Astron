@@ -22,7 +22,10 @@ jobs:
           echo "::set-output name=UVW_COMMIT::$(curl -sS https://api.github.com/repos/darktohka/uvw/commits/patch-1 | jq -r .sha)" && \
           echo "::set-output name=YAML_COMMIT::$(curl -sS https://api.github.com/repos/jbeder/yaml-cpp/commits/master | jq -r .sha)" && \
           echo "::set-output name=SOCI_COMMIT::$(curl -sS https://api.github.com/repos/soci/soci/commits/master | jq -r .sha)" && \
-          echo "::set-output name=MONGOC_VERSION::$(curl -sS https://api.github.com/repos/mongodb/mongo-c-driver/releases | jq -r .[0].tag_name)"
+          echo "::set-output name=MONGOC_VERSION::$(curl -sS https://api.github.com/repos/mongodb/mongo-c-driver/releases | jq -r .[0].tag_name)" && \
+          FLEXBISON_REPLY="$(curl -Ss https://api.github.com/repos/lexxmark/winflexbison/releases)" && \
+          echo "::set-output name=FLEXBISON_BUILD_ID::$(echo $FLEXBISON_REPLY | jq -r .[0].assets[0].id)" && \
+          echo "::set-output name=FLEXBISON_LINK::$(echo $FLEXBISON_REPLY | jq -r .[0].assets[0].browser_download_url)"
       - name: Cache OpenSSL
         id: cache-openssl
         uses: actions/cache@v3
@@ -65,11 +68,12 @@ jobs:
         with:
           path: ${{ github.workspace }}/libraries/soci
           key: ${{ runner.os }}-soci2-${{ steps.query.outputs.SOCI_COMMIT }}
-      - name: Soci
-        shell: bash
-        working-directory: ${{ github.workspace }}/libraries/soci
-        run: |
-          find . && cat lib/cmake/SOCI/*.cmake
+      - name: Cache Bison and Flex
+        id: cache-bison
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/libraries/bison
+          key: ${{ runner.os }}-bison-{{ steps.query.outputs.FLEXBISON_BUILD_ID }}
       - name: Cache Boost
         id: cache-boost
         uses: actions/cache@v3
@@ -260,6 +264,18 @@ jobs:
         shell: bash
         run: |
           for file in $(find . -name "*_*_*.*"); do mv "$file" "${file//_[0-9]}"; done
+      - name: Download Bison and Flex
+        if: steps.cache-bison.outputs.cache-hit != 'true'
+        uses: suisei-cn/actions-download-file@v1
+        with:
+          url: ${{ steps.query.outputs.FLEXBISON_LINK }}
+          target: ${{ github.workspace }}/libraries/bison
+      - name: Unzip Bison and Flex
+        if: steps.cache-bison.outputs.cache-hit != 'true'
+        shell: bash
+        working-directory: ${{ github.workspace }}/libraries/bison
+        run: |
+          unzip -qq *.zip && rm -f *.zip
       - name: Install Boost
         if: steps.cache-boost.outputs.cache-hit != 'true'
         uses: MarkusJx/install-boost@v2.3.0
@@ -268,26 +284,3 @@ jobs:
           boost_install_dir: "${{ github.workspace }}/libraries"
           platform_version: 2022
           toolset: msvc
-      - name: Checkout Astron
-        uses: actions/checkout@v3
-        with:
-          path: "Astron"
-      - name: Setup Astron
-        working-directory: Astron
-        shell: powershell
-        run: >
-          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" `
-            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/build/astron" `
-            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="/Zc:__cplusplus /EHsc" `
-            -DCMAKE_CXX_STANDARD=23 `
-            .
-      - name: Build and install Astron
-        working-directory: Astron
-        shell: powershell
-        run: >
-          cmake --build . --target install --config Release
-      - name: Upload Astron
-        uses: actions/upload-artifact@v3
-        with:
-          name: astron-windows
-          path: ${{ github.workspace }}/build/astron/bin/astrond.exe
