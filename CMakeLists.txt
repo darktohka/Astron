@@ -215,7 +215,7 @@ if(BUILD_DBSERVER)
 	endif()
 
 	### Check for soci and if available, compile SQL database support ###
-	find_package(Soci COMPONENTS postgresql mysql sqlite3)
+	find_package(Soci COMPONENTS postgresql mysql sqlite3 odbc)
 
 	if(Soci_FOUND)
 		message(STATUS "Found the following Soci library:")

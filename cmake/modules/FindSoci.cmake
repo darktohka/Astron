@@ -7,9 +7,6 @@
 #  Soci_VERSION             = the soci version found
 #  Soci_FOUND               = true if soci was found
 #
-# This module respects:
-#  LIB_SUFFIX         = (64|32|"") Specifies the suffix for the lib directory
-#
 # For each component you specify in find_package(), the following variables are set.
 #
 #  Soci_${COMPONENT}_PLUGIN = full path to the soci plugin (not set for the "core" component)
@@ -43,8 +40,8 @@ SET(Soci_INCLUDE_DIRS ${Soci_INCLUDE_DIR} CACHE STRING "")
 FIND_LIBRARY(
     Soci_LIBRARY
     NAMES soci_core
-    HINTS ${Soci_INCLUDE_DIR}/..
-    PATH_SUFFIXES lib${LIB_SUFFIX})
+    HINTS ${Soci_INCLUDE_DIR}/../lib
+    PATH_SUFFIXES libsoci_core)
 MARK_AS_ADVANCED(SOCI_LIBRARY)
 
 GET_FILENAME_COMPONENT(Soci_LIBRARY_DIR ${Soci_LIBRARY} PATH)
@@ -83,8 +80,8 @@ IF(Soci_INCLUDE_DIR AND Soci_LIBRARY)
         FIND_LIBRARY(
             Soci_${plugin}_PLUGIN
             NAMES soci_${plugin}
-            HINTS ${Soci_INCLUDE_DIR}/..
-            PATH_SUFFIXES lib${LIB_SUFFIX})
+            HINTS ${Soci_INCLUDE_DIR}/../lib
+            PATH_SUFFIXES libsoci_${plugin})
         MARK_AS_ADVANCED(Soci_${plugin}_PLUGIN)
 
         IF(Soci_${plugin}_PLUGIN)
