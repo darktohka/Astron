@@ -3,7 +3,7 @@ name: Autobuild for Windows
 on: [push, workflow_dispatch, repository_dispatch]
 
 env:
-  CMAKE_PREFIX_PATH: "$GITHUB_WORKSPACE/libraries/openssl;$GITHUB_WORKSPACE/libraries/zstd;$GITHUB_WORKSPACE/libraries/mongoc;$GITHUB_WORKSPACE/libraries/mongocxx;$GITHUB_WORKSPACE/libraries/libuv;$GITHUB_WORKSPACE/libraries/yaml;"
+  CMAKE_PREFIX_PATH: "D:\libraries\openssl;D:\libraries\zstd;D:\libraries\mongoc;D:\libraries\mongocxx;D:\libraries\libuv;D:\libraries\yaml;"
 
 jobs:
   build:
@@ -16,19 +16,26 @@ jobs:
         shell: bash
         run: |
           echo "::set-output name=MONGOC_COMMIT::$(curl -sS https://api.github.com/repos/mongodb/mongo-c-driver/commits/master | jq -r .sha)" && \
+          echo "::set-output name=MONGOCXX_COMMIT::$(curl -sS https://api.github.com/repos/mongodb/mongo-cxx-driver/commits/master | jq -r .sha)" && \
           echo "::set-output name=OPENSSL_COMMIT::$(curl -sS https://api.github.com/repos/darktohka/openssl/commits/feature/add-no-apps | jq -r .sha)"
       - name: Cache OpenSSL
         id: cache-openssl
         uses: actions/cache@v3
         with:
-          path: ${{ github.workspace }}/libraries/openssl
+          path: D:\libraries\openssl
           key: ${{ runner.os }}-openssl-${{ steps.query.outputs.OPENSSL_COMMIT }}
       - name: Cache mongo-c-driver
         id: cache-mongo-c-driver
         uses: actions/cache@v3
         with:
-          path: ${{ github.workspace }}/libraries/mongoc
+          path: D:\libraries\mongoc
           key: ${{ runner.os }}-mongoc-${{ steps.query.outputs.MONGOC_COMMIT }}
+      - name: Cache mongo-cxx-driver
+        id: cache-mongo-cxx-driver
+        uses: actions/cache@v3
+        with:
+          path: D:\libraries\mongocxx
+          key: ${{ runner.os }}-mongocxx-${{ steps.query.outputs.MONGOCXX_COMMIT }}
       - name: Checkout OpenSSL
         uses: actions/checkout@v3
         with:
@@ -53,12 +60,10 @@ jobs:
         working-directory: openssl
         run: >
           perl configure VC-WIN64A no-asm no-shared no-tests no-module no-dso no-legacy no-apps `
-            --prefix="${{ github.workspace }}\libraries\openssl" --openssldir="${{ github.workspace }}\libraries\openssl" /FS
+            --prefix="D:\libraries\openssl" --openssldir="D:\libraries\openssl" /FS
       - name: Build and install OpenSSL
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         shell: powershell
         working-directory: openssl
         run: >
           ./jom install_sw
-      - name: Checkout code
-        uses: actions/checkout@v3
