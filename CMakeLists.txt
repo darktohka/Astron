@@ -215,18 +215,18 @@ if(BUILD_DBSERVER)
 	endif()
 
 	### Check for soci and if available, compile SQL database support ###
-	find_package(SOCI COMPONENTS postgresql mysql sqlite3)
+	find_package(Soci COMPONENTS postgresql mysql sqlite3)
 
-	if(SOCI_FOUND)
+	if(Soci_FOUND)
 		message(STATUS "Found the following Soci library:")
-		message("  ${SOCI_LIBRARY}\n")
+		message("  ${Soci_LIBRARY}\n")
 
 		message(STATUS "Found the following Soci plugins:")
 		### PostgreSQL support ##
-		if(SOCI_postgresql_FOUND)
+		if(Soci_postgresql_FOUND)
 			set(BUILD_DB_POSTGRESQL ON CACHE BOOL "If on, will support PostgreSQL.")
 			message(STATUS "  PostgreSQL found")
-			message("	 ${SOCI_postgresql_PLUGIN}")
+			message("	 ${Soci_postgresql_PLUGIN}")
 		else()
 			unset(BUILD_DB_POSTGRESQL CACHE)
 			message(STATUS "  PostgreSQL not found")
@@ -234,10 +234,10 @@ if(BUILD_DBSERVER)
 		endif()
 
 		### MySQL support ###
-		if(SOCI_mysql_FOUND)
+		if(Soci_mysql_FOUND)
 			set(BUILD_DB_MYSQL ON CACHE BOOL "If on, will support MySQL.")
 			message(STATUS "  MySQL found")
-			message("	 ${SOCI_mysql_PLUGIN}")
+			message("	 ${Soci_mysql_PLUGIN}")
 		else()
 			unset(BUILD_DB_MYSQL CACHE)
 			message(STATUS "  MySQL not found")
@@ -245,10 +245,10 @@ if(BUILD_DBSERVER)
 		endif()
 
 		### SQLite3 support ###
-		if(SOCI_sqlite3_FOUND)
+		if(Soci_sqlite3_FOUND)
 			set(BUILD_DB_SQLITE ON CACHE BOOL "If on, will support SQLite3.")
 			message(STATUS "  SQLite3 found")
-			message("	 ${SOCI_sqlite3_PLUGIN}")
+			message("	 ${Soci_sqlite3_PLUGIN}")
 		else()
 			unset(BUILD_DB_SQLITE CACHE)
 			message(STATUS "  SQLite3 not found")
@@ -260,21 +260,27 @@ if(BUILD_DBSERVER)
 		### Add files to compiler and linker ###
 		if(BUILD_DB_SQLITE OR BUILD_DB_MYSQL OR BUILD_DB_POSTGRESQL)
 			add_definitions(-DBUILD_DB_SQL)
-			include_directories(${SOCI_INCLUDE_DIRS})
-			link_directories(${SOCI_LIBRARY_DIR})
+			include_directories(${Soci_INCLUDE_DIRS})
+			link_directories(${Soci_LIBRARY_DIR})
 			set(DBSERVER_FILES
 				${DBSERVER_FILES}
 				src/database/SociSQLDatabase.cpp
 			)
 
-			list(APPEND DB_LIBRARY_NAMES soci_core dl)
+			list(APPEND DB_LIBRARY_NAMES soci_core)
 			if(BUILD_DB_POSTGRESQL)
-				list(APPEND DB_LIBRARY_NAMES pq)
+				list(APPEND DB_LIBRARY_NAMES soci_postgresql)
 				add_test(db_pgsql
 					"${PYTHON2_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/test_dbserver_postgres.py")
 				add_test(validate_config_dbpostgres
 					"${PYTHON2_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/test_config_dbpostgres.py")
 				set(PYTHON_TESTS ${PYTHON_TESTS} db_pgsql validate_config_dbpostgres)
+			endif()
+			if(BUILD_DB_MYSQL)
+				list(APPEND DB_LIBRARY_NAMES soci_mysql)
+			endif()
+			if(BUILD_DB_SQLITE)
+				list(APPEND DB_LIBRARY_NAMES soci_sqlite3)
 			endif()
 		endif()
 	else()
