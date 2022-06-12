@@ -3,7 +3,7 @@ name: Autobuild for Windows
 on: [push, workflow_dispatch, repository_dispatch]
 
 env:
-  CMAKE_PREFIX_PATH: "${{ github.workspace }}\\libraries\\openssl;${{ github.workspace }}\\libraries\\zstd;${{ github.workspace }}\\libraries\\mongoc;${{ github.workspace }}\\libraries\\mongocxx;${{ github.workspace }}\\libraries\\libuv;${{ github.workspace }}\\libraries\\yaml;${{ github.workspace }}\\libraries"
+  CMAKE_PREFIX_PATH: "${{ github.workspace }}\\libraries\\openssl;${{ github.workspace }}\\libraries\\soci;${{ github.workspace }}\\libraries\\mongoc;${{ github.workspace }}\\libraries\\mongocxx;${{ github.workspace }}\\libraries\\libuv;${{ github.workspace }}\\libraries\\yaml;${{ github.workspace }}\\libraries"
 
 jobs:
   build:
@@ -20,6 +20,7 @@ jobs:
           echo "::set-output name=OPENSSL_COMMIT::$(curl -sS https://api.github.com/repos/darktohka/openssl/commits/feature/add-no-apps | jq -r .sha)" && \
           echo "::set-output name=LIBUV_COMMIT::$(curl -sS https://api.github.com/repos/libuv/libuv/commits/v1.x | jq -r .sha)" && \
           echo "::set-output name=YAML_COMMIT::$(curl -sS https://api.github.com/repos/jbeder/yaml-cpp/commits/master | jq -r .sha)" && \
+          echo "::set-output name=SOCI_COMMIT::$(curl -sS https://api.github.com/repos/soci/soci/commits/master | jq -r .sha)" && \
           echo "::set-output name=MONGOC_VERSION::$(curl -sS https://api.github.com/repos/mongodb/mongo-c-driver/releases | jq -r .[0].tag_name)"
       - name: Cache OpenSSL
         id: cache-openssl
@@ -51,6 +52,12 @@ jobs:
         with:
           path: ${{ github.workspace }}/libraries/yaml
           key: ${{ runner.os }}-yaml-${{ steps.query.outputs.YAML_COMMIT }}
+      - name: Cache SOCI
+        id: cache-soci
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/libraries/soci
+          key: ${{ runner.os }}-soci-${{ steps.query.outputs.SOCI_COMMIT }}
       - name: Checkout OpenSSL
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
@@ -180,6 +187,29 @@ jobs:
       - name: Build and install yaml-cpp
         if: steps.cache-yaml.outputs.cache-hit != 'true'
         working-directory: yaml
+        shell: powershell
+        run: >
+          cmake --build . --target install --config Release
+      - name: Checkout SOCI
+        if: steps.cache-soci.outputs.cache-hit != 'true'
+        uses: actions/checkout@v3
+        with:
+          repository: "SOCI/soci"
+          ref: "master"
+          path: "soci"
+      - name: Setup soci
+        if: steps.cache-soci.outputs.cache-hit != 'true'
+        working-directory: soci
+        shell: powershell
+        run: >
+          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" `
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/soci" `
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="/Zc:__cplusplus" `
+            -DCMAKE_CXX_STANDARD=23 -DSOCI_SHARED=OFF -DSOCI_TESTS=OFF `
+            .
+      - name: Build and install soci
+        if: steps.cache-soci.outputs.cache-hit != 'true'
+        working-directory: soci
         shell: powershell
         run: >
           cmake --build . --target install --config Release
