@@ -11,6 +11,24 @@ jobs:
     steps:
       - name: Setup Visual Studio
         uses: ilammy/msvc-dev-cmd@v1
+      - name: Query third party commits
+        id: query
+        shell: bash
+        run: |
+          echo "::set-output name=MONGOC_COMMIT::$(curl -sS https://api.github.com/repos/mongodb/mongo-c-driver/commits/master | jq -r .sha)" && \
+          echo "::set-output name=OPENSSL_COMMIT::$(curl -sS https://api.github.com/repos/darktohka/openssl/commits/feature/add-no-apps | jq -r .sha)"
+      - name: Cache OpenSSL
+        id: cache-openssl
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/libraries/openssl
+          key: ${{ runner.os }}-openssl-${{ steps.query.outputs.OPENSSL_COMMIT }}
+      - name: Cache mongo-c-driver
+        id: cache-mongo-c-driver
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/libraries/mongoc
+          key: ${{ runner.os }}-mongoc-${{ steps.query.outputs.MONGOC_COMMIT }}
       - name: Checkout OpenSSL
         uses: actions/checkout@v3
         with:
@@ -18,22 +36,26 @@ jobs:
           ref: "feature/add-no-apps"
           path: "openssl"
       - name: Download Jom
+        if: steps.cache-openssl.outputs.cache-hit != 'true'
         uses: suisei-cn/actions-download-file@v1
         with:
           url: "https://download.qt.io/official_releases/jom/unstable-jom.zip"
           target: openssl/
       - name: Unpack Jom
+        if: steps.cache-openssl.outputs.cache-hit != 'true'
         shell: bash
         working-directory: openssl
         run: >
           unzip -qq unstable-jom.zip
       - name: Configure OpenSSL
+        if: steps.cache-openssl.outputs.cache-hit != 'true'
         shell: powershell
         working-directory: openssl
         run: >
           perl configure VC-WIN64A no-asm no-shared no-tests no-module no-dso no-legacy no-apps `
             --prefix="${{ github.workspace }}\libraries\openssl" --openssldir="${{ github.workspace }}\libraries\openssl" /FS
       - name: Build and install OpenSSL
+        if: steps.cache-openssl.outputs.cache-hit != 'true'
         shell: powershell
         working-directory: openssl
         run: >
@@ -45,7 +67,7 @@ jobs:
           ref: "master"
           path: "mongo-c-driver"
       - name: Setup mongo-c-driver
-        working-directory: ./mongo-c-driver-master
+        working-directory: ./mongo-c-driver
         shell: powershell
         run: >
           cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/mongoc" `
@@ -53,7 +75,7 @@ jobs:
             -DENABLE_SSL=OPENSSL -DENABLE_MONGODB_AWS_AUTH=OFF -DENABLE_EXTRA_ALIGNMENT=OFF -DENABLE_TESTS=OFF -DENABLE_EXAMPLES=OFF `
             .
       - name: Compile mongo-c-driver
-        working-directory: ./mongo-c-driver-master
+        working-directory: ./mongo-c-driver
         shell: powershell
         run: |
           cmake --build . --config Release
