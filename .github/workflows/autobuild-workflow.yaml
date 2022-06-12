@@ -213,6 +213,12 @@ jobs:
         shell: powershell
         run: >
           cmake --build . --target install --config Release
+      - name: Install Boost
+        uses: MarkusJx/install-boost@v2
+        with:
+          boost_version: "1.79.0"
+          platform_version: 2022
+          toolset: msvc
       - name: Checkout Astron
         uses: actions/checkout@v3
         with:
