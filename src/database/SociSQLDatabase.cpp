@@ -79,7 +79,7 @@ class SociSQLDatabase : public OldDatabaseBackend
 
         try {
             m_sql.begin(); // Start transaction
-            m_sql << "SELECT COALESCE(MIN(t.id) + 1, :minId) FROM objects t LEFT OUTER JOIN objects t2 ON t.id = t2.id - 1 WHERE t2.id IS NULL;", into(do_id), use(min_id);
+            m_sql << "SELECT COALESCE(MIN(t.id) + 1, :minId) FROM objects t LEFT OUTER JOIN objects t2 ON t.id = t2.id - 1 WHERE t2.id IS NULL;", into(do_id), use(m_min_id);
 
             // Check if next available id is within range
             if(do_id > m_max_id) {
