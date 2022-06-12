@@ -117,7 +117,7 @@ message(STATUS "Found the libuv library:")
 message("	${LIBUV_LIBRARY}\n")
 
 # uvw dependency -- required by networking
-find_package(uvw REQUIRED)
+find_package(uv::uv-static REQUIRED)
 include_directories(${UVW_INCLUDE_DIR})
 link_directories(${UVW_LIBRARY_DIR})
 message(STATUS "Found the uvw library:")
@@ -214,7 +214,7 @@ if(BUILD_DBSERVER)
 	endif()
 
 	### Check for soci and if available, compile SQL database support ###
-	find_package(Soci COMPONENTS postgresql mysql sqlite3)
+	find_package(SOCI::SOCI COMPONENTS postgresql mysql sqlite3)
 
 	if(SOCI_FOUND)
 		message(STATUS "Found the following Soci library:")

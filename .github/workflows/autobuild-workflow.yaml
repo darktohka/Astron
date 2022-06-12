@@ -69,7 +69,7 @@ jobs:
         shell: bash
         working-directory: ${{ github.workspace }}/libraries/soci
         run: |
-          find .
+          find . && cat lib/cmake/SOCI/*.cmake
       - name: Cache Boost
         id: cache-boost
         uses: actions/cache@v3
