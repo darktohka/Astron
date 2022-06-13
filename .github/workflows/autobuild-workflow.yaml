@@ -16,6 +16,8 @@ jobs:
             c_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fstack-clash-protection -fPIE -Wformat -Wformat-security"
             cxx_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fstack-clash-protection -fPIE -Wformat -Wformat-security -Wno-unused-local-typedefs"
             exe_linker_flags: ""
+            openssl_arch: ""
+            openssl_options: ""
     runs-on: ${{ matrix.os }}
     name: Build for ${{ matrix.os }}
     steps:
@@ -40,14 +42,19 @@ jobs:
       - name: Setup Visual Studio
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
-      - name: Setup Ninja on Windows and Mac
-        if: runner.os != 'Linux'
+      - name: Setup Ninja on Windows
+        if: runner.os == 'Windows'
         uses: ashutoshvarma/setup-ninja@master
       - name: Setup Ninja on Linux
         if: runner.os == 'Linux'
         shell: bash
         run: |
           sudo apt-get install -y ninja-build
+      - name: Setup Ninja on Mac
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          brew install ninja
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2.2
         with:
@@ -126,27 +133,13 @@ jobs:
         working-directory: openssl
         run: |
           unzip -qq unstable-jom.zip
-      - name: Configure OpenSSL on Windows
-        if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os == 'Windows'
-        shell: pwsh
+      - name: Configure OpenSSL
+        if: steps.cache-openssl.outputs.cache-hit != 'true'
         working-directory: openssl
-        run: |
-          perl configure VC-WIN64A no-asm no-shared no-tests no-module no-dso no-legacy no-apps `
-            --prefix="${{ github.workspace }}/libraries/openssl" --openssldir="${{ github.workspace }}/libraries/openssl" /FS
-      - name: Configure OpenSSL on Linux
-        if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os == 'Linux'
-        shell: bash
-        working-directory: openssl
-        run: |
-          perl Configure linux-x86_64 no-asm no-shared no-tests no-module no-dso no-legacy no-apps \
+        run: >
+          perl Configure ${{ matrix.openssl_arch }} no-asm no-shared no-tests no-module no-dso no-legacy no-apps
             --prefix="${{ github.workspace }}/libraries/openssl" --openssldir="${{ github.workspace }}/libraries/openssl"
-      - name: Configure OpenSSL on Mac
-        if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os == 'macOS'
-        shell: bash
-        working-directory: openssl
-        run: |
-          perl Configure darwin64-x86_64 no-asm no-shared no-tests no-module no-dso no-legacy no-apps \
-            --prefix="${{ github.workspace }}/libraries/openssl" --openssldir="${{ github.workspace }}/libraries/openssl"
+            ${{ matrix.openssl_options }}
       - name: Build and install OpenSSL on Windows
         if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os == 'Windows'
         shell: pwsh
