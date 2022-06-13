@@ -106,12 +106,6 @@ jobs:
         with:
           path: ${{ github.workspace }}/libraries/bison
           key: ${{ runner.os }}-bison-${{ steps.query.outputs.FLEXBISON_BUILD_ID }}
-      - name: Cache Boost
-        id: cache-boost
-        uses: actions/cache@v3
-        with:
-          path: ${{ github.workspace }}/libraries/boost
-          key: boost
       - name: Checkout OpenSSL
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
@@ -419,6 +413,12 @@ jobs:
         working-directory: ${{ github.workspace }}/libraries/bison
         run: |
           unzip -qq *.zip && rm -f *.zip
+      - name: Cache Boost
+        id: cache-boost
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/libraries/boost
+          key: boost
       - name: Create Boost folder
         if: steps.cache-boost.outputs.cache-hit != 'true'
         shell: bash
