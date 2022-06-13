@@ -30,7 +30,7 @@ jobs:
             c_standard: "23"
             cxx_standard: "23"
             c_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fPIE -Wformat -Wformat-security"
-            cxx_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fPIE -Wformat -Wformat-security -Wno-error-unused-local-typedefs"
+            cxx_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fPIE -Wformat -Wformat-security -Wno-error=unused-local-typedefs"
             exe_linker_flags: ""
             openssl_arch: "darwin64-x86_64"
             openssl_options: ""
