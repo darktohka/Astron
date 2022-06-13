@@ -369,8 +369,14 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: "Astron"
+      - name: Cache Astron
+        id: cache-astron
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/Astron/build
+          key: ${{ runner.os }}-astron-${{ hashFiles('Astron/CMakeLists.txt') }}
       - name: Setup Astron
-        working-directory: Astron
+        working-directory: Astron/build
         shell: powershell
         run: >
           cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" `
@@ -378,9 +384,9 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="/Zc:__cplusplus /EHsc" `
             -DCMAKE_CXX_STANDARD=23 `
             -DCMAKE_EXE_LINKER_FLAGS="/alternatename:__imp___std_init_once_complete=__imp_InitOnceComplete /alternatename:__imp___std_init_once_begin_initialize=__imp_InitOnceBeginInitialize" `
-            .
+            ..
       - name: Build and install Astron
-        working-directory: Astron
+        working-directory: Astron/build
         shell: powershell
         run: >
           cmake --build . --parallel 2 --target install --config Release
