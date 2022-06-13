@@ -210,7 +210,7 @@ jobs:
           cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/mongocxx" \
-            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="{{ matrix.cxx_flags }}" \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}" \
             -DCMAKE_CXX_STANDARD=23 -DBUILD_VERSION="${{ steps.query.outputs.MONGOC_VERSION }}" \
             -DBUILD_SHARED_LIBS=OFF -DENABLE_UNINSTALL=OFF -DENABLE_TESTS=OFF \
             .
