@@ -412,3 +412,52 @@ jobs:
         working-directory: ${{ github.workspace }}/libraries/bison
         run: |
           unzip -qq *.zip && rm -f *.zip
+      - name: Create Boost folder
+        if: steps.cache-boost.outputs.cache-hit != 'true'
+        shell: bash
+        working-directory: ${{ github.workspace }}
+        run: |
+          mkdir -p boost/boost/built libraries/boost/include libraries/boost/cmake
+      - name: Install Boost on Windows
+        if: steps.cache-boost.outputs.cache-hit != 'true' && runner.os == 'Windows'
+        uses: MarkusJx/install-boost@v2.3.0
+        with:
+          boost_version: "1.79.0"
+          boost_install_dir: "${{ github.workspace }}"
+          platform_version: 2022
+          toolset: msvc
+      - name: Install Boost on Linux
+        if: steps.cache-boost.outputs.cache-hit != 'true' && runner.os == 'Linux'
+        uses: MarkusJx/install-boost@v2.3.0
+        with:
+          boost_version: "1.79.0"
+          boost_install_dir: "${{ github.workspace }}"
+      - name: Fix Boost folder
+        if: steps.cache-boost.outputs.cache-hit != 'true'
+        shell: bash
+        working-directory: boost/boost
+        run: |
+          rm -rf boost && cp -r include/boost .
+      - name: Build Boost on Windows
+        if: steps.cache-boost.outputs.cache-hit != 'true' && runner.os == 'Windows'
+        shell: pwsh
+        working-directory: boost/boost
+        run: >
+          ./bootstrap.bat; ./b2 tools/bcp; ./dist/bin/bcp icl built
+      - name: Build Boost on Linux
+        if: steps.cache-boost.outputs.cache-hit != 'true' && runner.os == 'Linux'
+        shell: bash
+        working-directory: boost/boost
+        run: >
+          ./bootstrap.sh; ./b2 tools/bcp; ./dist/bin/bcp icl built
+      - name: Package Boost
+        if: steps.cache-boost.outputs.cache-hit != 'true'
+        shell: bash
+        working-directory: boost/boost/built
+        run: |
+          mv boost "${{ github.workspace }}/libraries/boost/include/" && cp ../tools/cmake/include/*.cmake "${{ github.workspace }}/libraries/boost/cmake/" && find "${{ github.workspace }}/libraries/boost"
+      - name: Cleanup Boost
+        if: steps.cache-boost.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          rm -rf boost
