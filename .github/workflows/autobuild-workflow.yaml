@@ -376,6 +376,7 @@ jobs:
           path: ${{ github.workspace }}/Astron/build
           key: ${{ runner.os }}-astron-${{ hashFiles('Astron/CMakeLists.txt') }}
       - name: Setup Astron
+        if: steps.cache-astron.outputs.cache-hit != 'true'
         working-directory: Astron/build
         shell: bash
         run: |
