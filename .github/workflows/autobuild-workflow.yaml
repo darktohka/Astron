@@ -15,8 +15,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     name: Build for ${{ matrix.os }}
     steps:
-      - name: Setup Visual Studio
-        uses: ilammy/msvc-dev-cmd@v1
       - name: Query third party commits
         id: query
         shell: bash
@@ -35,6 +33,9 @@ jobs:
           SQLITE_FILENAME="$(curl -Ss https://sqlite.org/download.html | sed -nE "s/^PRODUCT,.*UTC,(.*),.*,.*$/\1/p")" && \
           echo "::set-output name=SQLITE_FILENAME::$SQLITE_FILENAME" && \
           echo "::set-output name=SQLITE_HASH::$(echo "$SQLITE_FILENAME" | sha256sum | cut -d ' ' -f 1)"
+      - name: Setup Visual Studio
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
       - name: Setup Ninja on Windows
         if: runner.os == 'Windows'
         uses: ashutoshvarma/setup-ninja@master
@@ -157,3 +158,34 @@ jobs:
         shell: bash
         run: |
           rm -rf openssl
+      - name: Checkout mongo-c-driver
+        if: steps.cache-mongoc.outputs.cache-hit != 'true'
+        uses: actions/checkout@v3
+        with:
+          repository: "mongodb/mongo-c-driver"
+          ref: "master"
+          path: "mongo-c-driver"
+      - name: Setup mongo-c-driver
+        if: steps.cache-mongoc.outputs.cache-hit != 'true'
+        working-directory: mongo-c-driver
+        shell: bash
+        run: |
+          cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/mongoc" \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_STANDARD=23 \
+            -DBUILD_VERSION="${{ steps.query.outputs.MONGOC_VERSION }}" \
+            -DENABLE_STATIC=ON -DENABLE_ZLIB=BUNDLED -DENABLE_ZSTD=OFF -DENABLE_SNAPPY=OFF -DENABLE_SASL=OFF \
+            -DENABLE_SSL=OPENSSL -DENABLE_MONGODB_AWS_AUTH=OFF -DENABLE_EXTRA_ALIGNMENT=OFF -DENABLE_TESTS=OFF \
+            -DENABLE_EXAMPLES=OFF -DMONGO_USE_CCACHE=ON .
+      - name: Build and install mongo-c-driver
+        if: steps.cache-mongoc.outputs.cache-hit != 'true'
+        working-directory: mongo-c-driver
+        shell: bash
+        run: |
+          cmake --build . --parallel 2 --target install --config Release
+      - name: Cleanup mongo-c-driver
+        if: steps.cache-mongoc.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          rm -rf mongo-c-driver
