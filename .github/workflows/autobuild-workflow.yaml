@@ -60,13 +60,13 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/mongoc
-          key: ${{ runner.os }}-mongoc4-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}
+          key: ${{ runner.os }}-mongoc5-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}
       - name: Cache mongo-cxx-driver
         id: cache-mongocxx
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/mongocxx
-          key: ${{ runner.os }}-mongocxx4-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}-${{ steps.query.outputs.MONGOCXX_COMMIT }}
+          key: ${{ runner.os }}-mongocxx5-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}-${{ steps.query.outputs.MONGOCXX_COMMIT }}
       - name: Cache libuv
         id: cache-libuv
         uses: actions/cache@v3
@@ -108,7 +108,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/boost
-          key: ${{ runner.os }}-boost4
+          key: boost
       - name: Checkout OpenSSL
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
@@ -178,7 +178,7 @@ jobs:
             -DBUILD_VERSION="${{ steps.query.outputs.MONGOC_VERSION }}" \
             -DENABLE_STATIC=ON -DENABLE_ZLIB=BUNDLED -DENABLE_ZSTD=OFF -DENABLE_SNAPPY=OFF -DENABLE_SASL=OFF \
             -DENABLE_SSL=OPENSSL -DENABLE_MONGODB_AWS_AUTH=OFF -DENABLE_EXTRA_ALIGNMENT=OFF -DENABLE_TESTS=OFF \
-            -DENABLE_EXAMPLES=OFF -DMONGO_USE_CCACHE=ON .
+            -DENABLE_EXAMPLES=OFF -DENABLE_UNINSTALL=OFF -DENABLE_ICU=OFF -DMONGO_USE_CCACHE=ON .
       - name: Build and install mongo-c-driver
         if: steps.cache-mongoc.outputs.cache-hit != 'true'
         working-directory: mongo-c-driver
