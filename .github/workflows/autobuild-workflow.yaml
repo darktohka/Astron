@@ -117,18 +117,18 @@ jobs:
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         shell: bash
         working-directory: openssl
-        run: >
+        run: |
           unzip -qq unstable-jom.zip
       - name: Configure OpenSSL
-        if: steps.cache-openssl.outputs.cache-hit != 'true'
-        shell: bash
+        if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os == 'Windows'
+        shell: powershell
         working-directory: openssl
-        run: >
+        run: |
           perl configure VC-WIN64A no-asm no-shared no-tests no-module no-dso no-legacy no-apps \
             --prefix="${{ github.workspace }}/libraries/openssl" --openssldir="${{ github.workspace }}/libraries/openssl" /FS
       - name: Build and install OpenSSL
-        if: steps.cache-openssl.outputs.cache-hit != 'true'
-        shell: bash
+        if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os == 'Windows'
+        shell: powershell
         working-directory: openssl
         run: >
           ./jom install_sw
@@ -224,7 +224,7 @@ jobs:
         if: steps.cache-libuv.outputs.cache-hit != 'true'
         working-directory: ./libuv
         shell: bash
-        run: >
+        run: |
           cmake --build . --parallel 2 --target install --config Release
       - name: Cleanup libuv
         if: steps.cache-libuv.outputs.cache-hit != 'true'
@@ -253,7 +253,7 @@ jobs:
         if: steps.cache-uvw.outputs.cache-hit != 'true'
         working-directory: uvw/build
         shell: bash
-        run: >
+        run: |
           cmake --build . --parallel 2 --target install --config Release
       - name: Cleanup uvw
         if: steps.cache-uvw.outputs.cache-hit != 'true'
@@ -283,7 +283,7 @@ jobs:
         if: steps.cache-yaml.outputs.cache-hit != 'true'
         working-directory: yaml
         shell: bash
-        run: >
+        run: |
           cmake --build . --parallel 2 --target install --config Release
       - name: Cleanup yaml-cpp
         if: steps.cache-yaml.outputs.cache-hit != 'true'
@@ -395,7 +395,7 @@ jobs:
         if: steps.cache-boost.outputs.cache-hit != 'true'
         shell: bash
         working-directory: ${{ github.workspace }}
-        run: >
+        run: |
           mkdir -p boost/boost/built libraries/boost/include libraries/boost/cmake
       - name: Install Boost
         if: steps.cache-boost.outputs.cache-hit != 'true'
@@ -412,7 +412,7 @@ jobs:
         run: |
           rm -rf boost && cp -r include/boost .
       - name: Build Boost
-        if: steps.cache-boost.outputs.cache-hit != 'true'
+        if: steps.cache-boost.outputs.cache-hit != 'true' && runner.os == 'Windows'
         shell: powershell
         working-directory: boost/boost
         run: >
@@ -446,7 +446,7 @@ jobs:
       - name: Build and install Astron
         working-directory: Astron/build
         shell: bash
-        run: >
+        run: |
           cmake --build . --parallel 2 --target install --config Release
       - name: Upload Astron
         uses: actions/upload-artifact@v3
