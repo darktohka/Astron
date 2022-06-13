@@ -9,8 +9,9 @@ jobs:
   build:
     strategy:
       matrix:
-        os:
-        - windows-latest
+        include:
+          - os: ubuntu-latest
+            cxx_flags: ""
     runs-on: ${{ matrix.os }}
     name: Build for ${{ matrix.os }}
     steps:
@@ -45,7 +46,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/openssl
-          key: ${{ runner.os }}-openssl4-${{ steps.query.outputs.OPENSSL_COMMIT }}
+          key: ${{ runner.os }}-openssl-${{ steps.query.outputs.OPENSSL_COMMIT }}
       - name: Cache mongo-c-driver
         id: cache-mongoc
         uses: actions/cache@v3
@@ -108,30 +109,43 @@ jobs:
           ref: "feature/add-no-apps"
           path: "openssl"
       - name: Download Jom
-        if: steps.cache-openssl.outputs.cache-hit != 'true'
+        if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os == 'Windows'
         uses: suisei-cn/actions-download-file@v1
         with:
           url: "https://download.qt.io/official_releases/jom/unstable-jom.zip"
           target: openssl/
       - name: Unpack Jom
-        if: steps.cache-openssl.outputs.cache-hit != 'true'
+        if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os == 'Windows'
         shell: bash
         working-directory: openssl
         run: |
           unzip -qq unstable-jom.zip
-      - name: Configure OpenSSL
+      - name: Configure OpenSSL on Windows
         if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os == 'Windows'
-        shell: powershell
+        shell: pwsh
         working-directory: openssl
         run: |
           perl configure VC-WIN64A no-asm no-shared no-tests no-module no-dso no-legacy no-apps `
             --prefix="${{ github.workspace }}/libraries/openssl" --openssldir="${{ github.workspace }}/libraries/openssl" /FS
-      - name: Build and install OpenSSL
+      - name: Configure OpenSSL on Linux
+        if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os == 'Linux'
+        shell: bash
+        working-directory: openssl
+        run: |
+          perl Configure linux-x86_64 no-asm no-shared no-tests no-module no-dso no-legacy no-apps `
+            --prefix="${{ github.workspace }}/libraries/openssl" --openssldir="${{ github.workspace }}/libraries/openssl"
+      - name: Build and install OpenSSL on Windows
         if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os == 'Windows'
-        shell: powershell
+        shell: pwsh
         working-directory: openssl
         run: >
           ./jom install_sw
+      - name: Build and install OpenSSL on Linux
+        if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os == 'Linux'
+        shell: bash
+        working-directory: openssl
+        run: |
+          make -j$(nproc) install_sw
       - name: Cleanup OpenSSL
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         shell: bash
@@ -156,7 +170,7 @@ jobs:
             -DBUILD_VERSION="${{ steps.query.outputs.MONGOC_VERSION }}" \
             -DENABLE_STATIC=ON -DENABLE_ZLIB=BUNDLED -DENABLE_ZSTD=OFF -DENABLE_SNAPPY=OFF -DENABLE_SASL=OFF \
             -DENABLE_SSL=OPENSSL -DENABLE_MONGODB_AWS_AUTH=OFF -DENABLE_EXTRA_ALIGNMENT=OFF -DENABLE_TESTS=OFF \
-            -DENABLE_EXAMPLES=OFF .
+            -DENABLE_EXAMPLES=OFF -DMONGO_USE_CCACHE=ON .
       - name: Build and install mongo-c-driver
         if: steps.cache-mongoc.outputs.cache-hit != 'true'
         working-directory: mongo-c-driver
@@ -189,7 +203,7 @@ jobs:
           cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/mongocxx" \
-            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="/Zc:__cplusplus /EHsc" \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="{{ matrix.cxx_flags }}" \
             -DCMAKE_CXX_STANDARD=23 -DBUILD_VERSION="${{ steps.query.outputs.MONGOC_VERSION }}" \
             -DBUILD_SHARED_LIBS=OFF -DENABLE_UNINSTALL=OFF -DENABLE_TESTS=OFF \
             .
@@ -246,7 +260,7 @@ jobs:
           cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/uvw" \
-            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="/Zc:__cplusplus /EHsc" \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="{{ matrix.cxx_flags }}" \
             -DCMAKE_CXX_STANDARD=23 -DBUILD_UVW_SHARED_LIB=OFF -DBUILD_UVW_LIBS=ON \
             -DBUILD_TESTING=OFF -DBUILD_DOCS=OFF -DFETCH_LIBUV=OFF -DFIND_LIBUV=ON ..
       - name: Build and install uvw
@@ -275,7 +289,7 @@ jobs:
           cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/yaml" \
-            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="/Zc:__cplusplus /EHsc" \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="{{ matrix.cxx_flags }}" \
             -DCMAKE_CXX_STANDARD=23 -DYAML_CPP_BUILD_CONTRIB=OFF -DYAML_CPP_BUILD_TOOLS=OFF -DYAML_BUILD_SHARED_LIBS=OFF \
             -DYAML_CPP_FORMAT_SOURCE=OFF -DYAML_CPP_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=OFF \
             .
@@ -359,7 +373,7 @@ jobs:
           cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/soci" \
-            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="/Zc:__cplusplus /EHsc" \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="{{ matrix.cxx_flags }}" \
             -DCMAKE_CXX_STANDARD=23 -DSOCI_SHARED=OFF -DSOCI_TESTS=OFF \
             .
       - name: Build and install SOCI
@@ -380,13 +394,13 @@ jobs:
         run: |
           rm -rf soci
       - name: Download Bison and Flex
-        if: steps.cache-bison.outputs.cache-hit != 'true'
+        if: steps.cache-bison.outputs.cache-hit != 'true' && runner.os == 'Windows'
         uses: suisei-cn/actions-download-file@v1
         with:
           url: ${{ steps.query.outputs.FLEXBISON_LINK }}
           target: ${{ github.workspace }}/libraries/bison
       - name: Unzip Bison and Flex
-        if: steps.cache-bison.outputs.cache-hit != 'true'
+        if: steps.cache-bison.outputs.cache-hit != 'true' && runner.os == 'Windows'
         shell: bash
         working-directory: ${{ github.workspace }}/libraries/bison
         run: |
@@ -397,26 +411,38 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           mkdir -p boost/boost/built libraries/boost/include libraries/boost/cmake
-      - name: Install Boost
-        if: steps.cache-boost.outputs.cache-hit != 'true'
+      - name: Install Boost on Windows
+        if: steps.cache-boost.outputs.cache-hit != 'true' && runner.os == 'Windows'
         uses: MarkusJx/install-boost@v2.3.0
         with:
           boost_version: "1.79.0"
           boost_install_dir: "${{ github.workspace }}"
           platform_version: 2022
           toolset: msvc
+      - name: Install Boost on Linux
+        if: steps.cache-boost.outputs.cache-hit != 'true' && runner.os == 'Linux'
+        uses: MarkusJx/install-boost@v2.3.0
+        with:
+          boost_version: "1.79.0"
+          boost_install_dir: "${{ github.workspace }}"
       - name: Fix Boost folder
         if: steps.cache-boost.outputs.cache-hit != 'true'
         shell: bash
         working-directory: boost/boost
         run: |
           rm -rf boost && cp -r include/boost .
-      - name: Build Boost
+      - name: Build Boost on Windows
         if: steps.cache-boost.outputs.cache-hit != 'true' && runner.os == 'Windows'
-        shell: powershell
+        shell: pwsh
         working-directory: boost/boost
         run: >
           ./bootstrap.bat; ./b2 tools/bcp; ./dist/bin/bcp icl built
+      - name: Build Boost on Linux
+        if: steps.cache-boost.outputs.cache-hit != 'true' && runner.os == 'Linux'
+        shell: bash
+        working-directory: boost/boost
+        run: >
+          ./bootstrap.sh; ./b2 tools/bcp; ./dist/bin/bcp icl built
       - name: Package Boost
         if: steps.cache-boost.outputs.cache-hit != 'true'
         shell: bash
@@ -439,7 +465,7 @@ jobs:
           cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/build/astron" \
-            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="/Zc:__cplusplus /EHsc" \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="{{ matrix.cxx_flags }}" \
             -DCMAKE_CXX_STANDARD=23 \
             -DCMAKE_EXE_LINKER_FLAGS="/alternatename:__imp___std_init_once_complete=__imp_InitOnceComplete /alternatename:__imp___std_init_once_begin_initialize=__imp_InitOnceBeginInitialize" \
             ..
