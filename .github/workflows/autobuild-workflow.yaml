@@ -189,3 +189,39 @@ jobs:
         shell: bash
         run: |
           rm -rf mongo-c-driver
+      - name: Checkout mongo-cxx-driver
+        if: steps.cache-mongocxx.outputs.cache-hit != 'true'
+        uses: actions/checkout@v3
+        with:
+          repository: "mongodb/mongo-cxx-driver"
+          ref: "master"
+          path: "mongo-cxx-driver"
+      - name: Cleanup mongo-cxx-driver
+        if: steps.cache-mongocxx.outputs.cache-hit != 'true'
+        shell: bash
+        working-directory: mongo-cxx-driver
+        run: |
+          for dir in benchmark docs examples; do rm -rf $dir; mkdir -p $dir; touch $dir/CMakeLists.txt; done
+      - name: Setup mongo-cxx-driver
+        if: steps.cache-mongocxx.outputs.cache-hit != 'true'
+        working-directory: mongo-cxx-driver
+        shell: bash
+        run: |
+          cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/mongocxx" \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="{{ matrix.cxx_flags }}" \
+            -DCMAKE_CXX_STANDARD=23 -DBUILD_VERSION="${{ steps.query.outputs.MONGOC_VERSION }}" \
+            -DBUILD_SHARED_LIBS=OFF -DENABLE_UNINSTALL=OFF -DENABLE_TESTS=OFF \
+            .
+      - name: Build and install mongo-cxx-driver
+        if: steps.cache-mongocxx.outputs.cache-hit != 'true'
+        working-directory: mongo-cxx-driver
+        shell: bash
+        run: |
+          cmake --build . --parallel 2 --target install --config Release
+      - name: Cleanup mongo-cxx-driver
+        if: steps.cache-mongocxx.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          rm -rf mongo-cxx-driver
