@@ -401,8 +401,12 @@ jobs:
         with:
           name: astron-windows
           path: ${{ github.workspace }}/build/astron/bin/astrond.exe
+      - name: Package libraries
+        shell: bash
+        run: |
+          tar -axf astron-libraries.tar.zst libraries
       - name: Upload libraries
         uses: actions/upload-artifact@v3
         with:
-          name: astron-windows-libraries
-          path: ${{ github.workspace }}/libraries
+          name: ${{ runner.os }}-libraries
+          path: astron-libraries.tar.zst
