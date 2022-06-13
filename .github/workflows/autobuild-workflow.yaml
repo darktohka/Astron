@@ -43,7 +43,6 @@ jobs:
         shell: bash
         run: |
           apt-get install -y ninja-build
-        uses: ashutoshvarma/setup-ninja@master
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2.2
         with:
