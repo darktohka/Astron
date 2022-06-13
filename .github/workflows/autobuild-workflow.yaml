@@ -311,3 +311,57 @@ jobs:
         shell: bash
         run: |
           rm -rf yaml
+      - name: Download SQLite3
+        if: steps.cache-sqlite.outputs.cache-hit != 'true'
+        uses: suisei-cn/actions-download-file@v1
+        with:
+          url: https://sqlite.org/${{ steps.query.outputs.SQLITE_FILENAME }}
+          target: sqlite/
+      - name: Extract SQLite3
+        if: steps.cache-sqlite.outputs.cache-hit != 'true'
+        shell: bash
+        working-directory: sqlite
+        run: |
+          tar -xzf *.tar.gz && rm -f *.tar.gz && mv sqlite-snapshot-* src
+      - name: Create SQLite3 project
+        if: steps.cache-sqlite.outputs.cache-hit != 'true'
+        shell: bash
+        working-directory: sqlite
+        run: >
+          cat <<EOF > CMakeLists.txt
+            PROJECT(sqlite3)
+            cmake_minimum_required(VERSION 3.10)
+
+            include_directories(${CMAKE_SOURCE_DIR}/src)
+            add_library(sqlite3 STATIC src/sqlite3.c src/sqlite3.h src/sqlite3ext.h)
+
+            add_definitions(-DSQLITE_ENABLE_RTREE)
+            add_definitions(-DSQLITE_ENABLE_FTS4)
+            add_definitions(-DSQLITE_ENABLE_FTS5)
+            add_definitions(-DSQLITE_ENABLE_JSON1)
+            add_definitions(-DSQLITE_ENABLE_RBU)
+            add_definitions(-DSQLITE_ENABLE_STAT4)
+
+            install(FILES src/sqlite3.h src/sqlite3ext.h DESTINATION include)
+            install(TARGETS sqlite3 LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+          EOF
+      - name: Setup SQLite3
+        if: steps.cache-sqlite.outputs.cache-hit != 'true'
+        working-directory: sqlite
+        shell: bash
+        run: |
+          cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/sqlite" \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_STANDARD=23 .
+      - name: Build and install SQLite3
+        if: steps.cache-sqlite.outputs.cache-hit != 'true'
+        working-directory: sqlite
+        shell: bash
+        run: |
+          cmake --build . --parallel 2 --target install --config Release
+      - name: Cleanup SQLite3
+        if: steps.cache-sqlite.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          rm -rf sqlite
