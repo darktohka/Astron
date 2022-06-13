@@ -411,7 +411,7 @@ jobs:
       - name: Package libraries
         shell: bash
         run: |
-          tar -axf astron-libraries.tar.zst libraries
+          tar -acf astron-libraries.tar.zst libraries
       - name: Upload libraries
         uses: actions/upload-artifact@v3
         with:
