@@ -29,6 +29,8 @@ jobs:
           SQLITE_FILENAME="$(curl -Ss https://sqlite.org/download.html | sed -nE "s/^PRODUCT,.*UTC,(.*),.*,.*$/\1/p")" && \
           echo "::set-output name=SQLITE_FILENAME::$SQLITE_FILENAME" && \
           echo "::set-output name=SQLITE_HASH::$(echo "$SQLITE_FILENAME" | sha256sum | cut -d ' ' -f 1)"
+      - name: Setup Ninja
+        uses: ashutoshvarma/setup-ninja@master
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2.2
         with:
@@ -137,7 +139,7 @@ jobs:
         working-directory: ./mongo-c-driver
         shell: bash
         run: |
-          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
+          cmake -G"Ninja" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/mongoc" \
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_STANDARD=23 \
@@ -169,7 +171,7 @@ jobs:
         working-directory: ./mongo-cxx-driver
         shell: bash
         run: |
-          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
+          cmake -G"Ninja" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/mongocxx" \
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="/Zc:__cplusplus /EHsc" \
@@ -194,7 +196,7 @@ jobs:
         working-directory: ./libuv
         shell: bash
         run: |
-          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
+          cmake -G"Ninja" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/libuv" \
             -DCMAKE_C_STANDARD=23 -DLIBUV_BUILD_TESTS=OFF -DLIBUV_BUILD_BENCH=OFF .
@@ -216,7 +218,7 @@ jobs:
         working-directory: uvw/build
         shell: bash
         run: |
-          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
+          cmake -G"Ninja" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/uvw" \
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="/Zc:__cplusplus /EHsc" \
@@ -240,7 +242,7 @@ jobs:
         working-directory: yaml
         shell: bash
         run: |
-          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
+          cmake -G"Ninja" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/yaml" \
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="/Zc:__cplusplus /EHsc" \
@@ -292,7 +294,7 @@ jobs:
         working-directory: sqlite
         shell: bash
         run: |
-          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
+          cmake -G"Ninja" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/sqlite" \
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_STANDARD=23 .
@@ -314,7 +316,7 @@ jobs:
         working-directory: soci
         shell: bash
         run: |
-          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
+          cmake -G"Ninja" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/soci" \
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="/Zc:__cplusplus /EHsc" \
@@ -384,7 +386,7 @@ jobs:
         working-directory: Astron/build
         shell: bash
         run: |
-          cmake -G"Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
+          cmake -G"Ninja" -A x64 -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/build/astron" \
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="/Zc:__cplusplus /EHsc" \
