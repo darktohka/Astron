@@ -281,3 +281,33 @@ jobs:
         shell: bash
         run: |
           rm -rf uvw
+      - name: Checkout yaml-cpp
+        if: steps.cache-yaml.outputs.cache-hit != 'true'
+        uses: actions/checkout@v3
+        with:
+          repository: "darktohka/yaml-cpp"
+          ref: "patch-1"
+          path: "yaml"
+      - name: Setup yaml-cpp
+        if: steps.cache-yaml.outputs.cache-hit != 'true'
+        working-directory: yaml
+        shell: bash
+        run: |
+          cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/yaml" \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}" \
+            -DCMAKE_CXX_STANDARD=23 -DYAML_CPP_BUILD_CONTRIB=OFF -DYAML_CPP_BUILD_TOOLS=OFF -DYAML_BUILD_SHARED_LIBS=OFF \
+            -DYAML_CPP_FORMAT_SOURCE=OFF -DYAML_CPP_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=OFF \
+            .
+      - name: Build and install yaml-cpp
+        if: steps.cache-yaml.outputs.cache-hit != 'true'
+        working-directory: yaml
+        shell: bash
+        run: |
+          cmake --build . --parallel 2 --target install --config Release
+      - name: Cleanup yaml-cpp
+        if: steps.cache-yaml.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          rm -rf yaml
