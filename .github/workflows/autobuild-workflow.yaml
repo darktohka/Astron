@@ -42,7 +42,7 @@ jobs:
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          apt-get install -y ninja-build
+          sudo apt-get install -y ninja-build
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2.2
         with:
