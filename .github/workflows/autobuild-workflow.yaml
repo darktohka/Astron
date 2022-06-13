@@ -11,7 +11,7 @@ jobs:
       matrix:
         include:
           - os: ubuntu-22.04
-            cxx_flags: ""
+            cxx_flags: "-Wno-unused-local-typedefs"
             exe_linker_flags: ""
     runs-on: ${{ matrix.os }}
     name: Build for ${{ matrix.os }}
