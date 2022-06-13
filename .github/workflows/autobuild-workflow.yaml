@@ -10,6 +10,14 @@ jobs:
     strategy:
       matrix:
         include:
+          - os: windows-latest
+            c_standard: "23"
+            cxx_standard: "23"
+            c_flags: ""
+            cxx_flags: "/Zc:__cplusplus /EHsc"
+            exe_linker_flags: "/alternatename:__imp___std_init_once_complete=__imp_InitOnceComplete /alternatename:__imp___std_init_once_begin_initialize=__imp_InitOnceBeginInitialize"
+            openssl_arch: "VC-WIN64A"
+            openssl_options: "/FS"
           - os: ubuntu-20.04
             c_standard: "17"
             cxx_standard: "20"
