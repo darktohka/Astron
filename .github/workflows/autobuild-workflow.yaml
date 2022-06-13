@@ -124,7 +124,7 @@ jobs:
         shell: powershell
         working-directory: openssl
         run: |
-          perl configure VC-WIN64A no-asm no-shared no-tests no-module no-dso no-legacy no-apps \
+          perl configure VC-WIN64A no-asm no-shared no-tests no-module no-dso no-legacy no-apps `
             --prefix="${{ github.workspace }}/libraries/openssl" --openssldir="${{ github.workspace }}/libraries/openssl" /FS
       - name: Build and install OpenSSL
         if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os == 'Windows'
