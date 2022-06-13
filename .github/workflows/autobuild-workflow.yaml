@@ -132,7 +132,7 @@ jobs:
         shell: bash
         working-directory: openssl
         run: |
-          perl Configure linux-x86_64 no-asm no-shared no-tests no-module no-dso no-legacy no-apps `
+          perl Configure linux-x86_64 no-asm no-shared no-tests no-module no-dso no-legacy no-apps \
             --prefix="${{ github.workspace }}/libraries/openssl" --openssldir="${{ github.workspace }}/libraries/openssl"
       - name: Build and install OpenSSL on Windows
         if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os == 'Windows'
