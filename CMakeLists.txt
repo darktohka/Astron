@@ -226,7 +226,7 @@ if(BUILD_DBSERVER)
 
 		message(STATUS "Found the following Soci plugins:")
 		### PostgreSQL support ##
-		if(Soci_postgresql_FOUND)
+		if(FALSE AND Soci_postgresql_FOUND)
 			set(BUILD_DB_POSTGRESQL ON CACHE BOOL "If on, will support PostgreSQL.")
 			if(BUILD_DB_POSTGRESQL)
 				find_package(PostgreSQL REQUIRED)
