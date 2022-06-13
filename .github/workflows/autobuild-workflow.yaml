@@ -11,8 +11,10 @@ jobs:
       matrix:
         include:
           - os: ubuntu-20.04
+            c_standard: "17"
             cxx_standard: "20"
-            cxx_flags: "-Wno-unused-local-typedefs"
+            c_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fstack-clash-protection -fPIE -Wformat -Wformat-security"
+            cxx_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fstack-clash-protection -fPIE -Wformat -Wformat-security -Wno-unused-local-typedefs"
             exe_linker_flags: ""
     runs-on: ${{ matrix.os }}
     name: Build for ${{ matrix.os }}
@@ -175,7 +177,8 @@ jobs:
           cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/mongoc" \
-            -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_STANDARD=${{ matrix.cxx_standard }} \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_STANDARD=${{ matrix.c_standard }} \
+            -DCMAKE_C_FLAGS=${{ matrix.c_flags }} \
             -DBUILD_VERSION="${{ steps.query.outputs.MONGOC_VERSION }}" \
             -DENABLE_STATIC=ON -DENABLE_ZLIB=BUNDLED -DENABLE_ZSTD=OFF -DENABLE_SNAPPY=OFF -DENABLE_SASL=OFF \
             -DENABLE_SSL=OPENSSL -DENABLE_MONGODB_AWS_AUTH=OFF -DENABLE_EXTRA_ALIGNMENT=OFF -DENABLE_TESTS=OFF \
@@ -242,7 +245,8 @@ jobs:
           cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/libuv" \
-            -DCMAKE_C_STANDARD=${{ matrix.cxx_standard }} -DLIBUV_BUILD_TESTS=OFF -DLIBUV_BUILD_BENCH=OFF .
+            -DCMAKE_C_STANDARD=${{ matrix.c_standard }} -DCMAKE_C_FLAGS=${{ matrix.c_flags }} \
+            -DLIBUV_BUILD_TESTS=OFF -DLIBUV_BUILD_BENCH=OFF .
       - name: Build and install libuv
         if: steps.cache-libuv.outputs.cache-hit != 'true'
         working-directory: ./libuv
@@ -355,7 +359,8 @@ jobs:
           cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/sqlite" \
-            -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_STANDARD=${{ matrix.cxx_standard }} .
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_STANDARD=${{ matrix.c_standard }} \
+            -DCMAKE_C_FLAGS=${{ matrix.c_flags }} .
       - name: Build and install SQLite3
         if: steps.cache-sqlite.outputs.cache-hit != 'true'
         working-directory: sqlite
