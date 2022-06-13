@@ -10,12 +10,12 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-20.04
-            c_standard: "17"
-            cxx_standard: "20"
-            c_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fstack-clash-protection -fPIE -Wformat -Wformat-security"
-            cxx_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fstack-clash-protection -fPIE -Wformat -Wformat-security -Wno-unused-local-typedefs"
-            exe_linker_flags: ""
+          - os: windows-latest
+            c_standard: "23"
+            cxx_standard: "23"
+            c_flags: ""
+            cxx_flags: "/Zc:__cplusplus /EHsc"
+            exe_linker_flags: "/alternatename:__imp___std_init_once_complete=__imp_InitOnceComplete /alternatename:__imp___std_init_once_begin_initialize=__imp_InitOnceBeginInitialize"
     runs-on: ${{ matrix.os }}
     name: Build for ${{ matrix.os }}
     steps:
