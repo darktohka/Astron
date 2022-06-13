@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             cxx_flags: ""
     runs-on: ${{ matrix.os }}
     name: Build for ${{ matrix.os }}
