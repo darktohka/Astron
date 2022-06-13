@@ -57,55 +57,56 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/openssl
-          key: ${{ runner.os }}-openssl6-${{ steps.query.outputs.OPENSSL_COMMIT }}
+          key: ${{ matrix.os }}-openssl-${{ steps.query.outputs.OPENSSL_COMMIT }}
       - name: Cache mongo-c-driver
         id: cache-mongoc
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/mongoc
-          key: ${{ runner.os }}-mongoc6-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}
+          key: ${{ matrix.os }}-mongoc-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}
       - name: Cache mongo-cxx-driver
         id: cache-mongocxx
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/mongocxx
-          key: ${{ runner.os }}-mongocxx6-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}-${{ steps.query.outputs.MONGOCXX_COMMIT }}
+          key: ${{ matrix.os }}-mongocxx-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}-${{ steps.query.outputs.MONGOCXX_COMMIT }}
       - name: Cache libuv
         id: cache-libuv
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/libuv
-          key: ${{ runner.os }}-uv6-${{ steps.query.outputs.LIBUV_COMMIT }}
+          key: ${{ matrix.os }}-libuv-${{ steps.query.outputs.LIBUV_COMMIT }}
       - name: Cache uvw
         id: cache-uvw
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/uvw
-          key: ${{ runner.os }}-uvw6-${{ steps.query.outputs.LIBUV_COMMIT }}-${{ steps.query.outputs.UVW_COMMIT }}
+          key: ${{ matrix.os }}-uvw-${{ steps.query.outputs.LIBUV_COMMIT }}-${{ steps.query.outputs.UVW_COMMIT }}
       - name: Cache yaml-cpp
         id: cache-yaml
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/yaml
-          key: ${{ runner.os }}-yaml6-${{ steps.query.outputs.YAML_COMMIT }}
+          key: ${{ matrix.os }}-yaml-${{ steps.query.outputs.YAML_COMMIT }}
       - name: Cache SQLite3
         id: cache-sqlite
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/sqlite
-          key: ${{ runner.os }}-sqlite6-${{ steps.query.outputs.SQLITE_HASH }}
+          key: ${{ matrix.os }}-sqlite-${{ steps.query.outputs.SQLITE_HASH }}
       - name: Cache SOCI
         id: cache-soci
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/soci
-          key: ${{ runner.os }}-soci6-${{ steps.query.outputs.SQLITE_HASH }}-${{ steps.query.outputs.SOCI_COMMIT }}
+          key: ${{ matrix.os }}-soci-${{ steps.query.outputs.SQLITE_HASH }}-${{ steps.query.outputs.SOCI_COMMIT }}
       - name: Cache Bison and Flex
+        if: runner.os == 'Windows'
         id: cache-bison
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/bison
-          key: ${{ runner.os }}-bison-${{ steps.query.outputs.FLEXBISON_BUILD_ID }}
+          key: ${{ matrix.os }}-bison-${{ steps.query.outputs.FLEXBISON_BUILD_ID }}
       - name: Checkout OpenSSL
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
