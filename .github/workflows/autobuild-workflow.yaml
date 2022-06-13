@@ -481,3 +481,44 @@ jobs:
         shell: bash
         run: |
           rm -rf boost
+      - name: Checkout Astron
+        uses: actions/checkout@v3
+        with:
+          path: "Astron"
+      - name: Setup Astron
+        working-directory: Astron/build
+        shell: bash
+        run: |
+          cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/build/astron" \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}" \
+            -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} \
+            -DCMAKE_EXE_LINKER_FLAGS="${{ matrix.exe_linker_flags }}" \
+            ..
+      - name: Build and install Astron
+        working-directory: Astron/build
+        shell: bash
+        run: |
+          cmake --build . --parallel 2 --target install --config Release
+      - name: Upload Astron on Windows
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-astron
+          path: ${{ github.workspace }}/build/astron/bin/astrond.exe
+      - name: Upload Astron on Linux and Mac
+        if: runner.os != 'Windows'
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-astron
+          path: ${{ github.workspace }}/build/astron/bin/astrond
+      - name: Package libraries
+        shell: bash
+        run: |
+          tar -acf astron-libraries.tar.zst libraries
+      - name: Upload libraries
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-libraries
+          path: astron-libraries.tar.zst
