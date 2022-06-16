@@ -43,7 +43,7 @@ jobs:
         run: |
           echo "::set-output name=MONGOC_COMMIT::$(curl -sS https://api.github.com/repos/mongodb/mongo-c-driver/commits/master | jq -r .sha)" && \
           echo "::set-output name=MONGOCXX_COMMIT::$(curl -sS https://api.github.com/repos/mongodb/mongo-cxx-driver/commits/master | jq -r .sha)" && \
-          echo "::set-output name=OPENSSL_COMMIT::$(curl -sS https://api.github.com/repos/darktohka/openssl/commits/feature/add-no-apps | jq -r .sha)" && \
+          echo "::set-output name=OPENSSL_COMMIT::$(curl -sS https://api.github.com/repos/openssl/openssl/commits/master | jq -r .sha)" && \
           echo "::set-output name=LIBUV_COMMIT::$(curl -sS https://api.github.com/repos/libuv/libuv/commits/v1.x | jq -r .sha)" && \
           echo "::set-output name=UVW_COMMIT::$(curl -sS https://api.github.com/repos/darktohka/uvw/commits/patch-1 | jq -r .sha)" && \
           echo "::set-output name=YAML_COMMIT::$(curl -sS https://api.github.com/repos/darktohka/yaml-cpp/commits/patch-1 | jq -r .sha)" && \
@@ -80,6 +80,11 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2.2
         with:
           key: ${{ matrix.os }}-ccache
+      - name: Remove ODBC shared libraries
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          rm -f /usr/lib/*/libodbc*.so
       - name: Cache OpenSSL
         id: cache-openssl
         uses: actions/cache@v3
@@ -139,8 +144,8 @@ jobs:
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
         with:
-          repository: "darktohka/openssl"
-          ref: "feature/add-no-apps"
+          repository: "openssl/openssl"
+          ref: "master"
           path: "openssl"
       - name: Download Jom
         if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os == 'Windows'
@@ -158,19 +163,19 @@ jobs:
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         working-directory: openssl
         run: |
-          perl Configure ${{ matrix.openssl_arch }} no-asm no-shared no-tests no-module no-dso no-legacy no-apps --prefix="${{ github.workspace }}/libraries/openssl" --openssldir="${{ github.workspace }}/libraries/openssl" ${{ matrix.openssl_options }}
+          perl Configure ${{ matrix.openssl_arch }} no-asm no-shared no-tests no-module no-dso no-legacy --prefix="${{ github.workspace }}/libraries/openssl" --openssldir="${{ github.workspace }}/libraries/openssl" ${{ matrix.openssl_options }}
       - name: Build and install OpenSSL on Windows
         if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os == 'Windows'
         shell: pwsh
         working-directory: openssl
         run: >
-          ./jom install_sw
+          ./jom install_dev
       - name: Build and install OpenSSL on Linux and Mac
         if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os != 'Windows'
         shell: bash
         working-directory: openssl
         run: |
-          make -j$(nproc) install_sw
+          make -j$(nproc) install_dev
       - name: Cleanup OpenSSL
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         shell: bash
