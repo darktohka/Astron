@@ -193,6 +193,12 @@ jobs:
           repository: "mongodb/mongo-c-driver"
           ref: "master"
           path: "mongo-c-driver"
+      - name: Create mongo-c-driver versions
+        if: steps.cache-mongoc.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          echo "${{ steps.query.outputs.MONOGC_VERSION }}" > VERSION_CURRENT && \
+          echo "${{ steps.query.outputs.MONOGC_VERSION }}" > VERSION_RELEASED
       - name: Setup mongo-c-driver
         if: steps.cache-mongoc.outputs.cache-hit != 'true'
         working-directory: mongo-c-driver
