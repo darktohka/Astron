@@ -84,7 +84,7 @@ jobs:
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          sudo apt install -y --reinstall unixodbc-dev && rm -f /usr/lib/*/libodbc*.so
+          sudo apt install -y --reinstall unixodbc-dev && sudo rm -f /usr/lib/*/libodbc*.so
       - name: Remove Mono.framework
         if: runner.os == 'Mac'
         shell: bash
