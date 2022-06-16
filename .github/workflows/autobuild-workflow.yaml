@@ -85,6 +85,11 @@ jobs:
         shell: bash
         run: |
           sudo rm -f /usr/lib/*/libodbc*.so
+      - name: Remove Mono.framework
+        if: runner.os == 'Mac'
+        shell: bash
+        run: |
+          sudo rm -rf /Library/Frameworks/Mono.framework
       - name: Cache OpenSSL
         id: cache-openssl
         uses: actions/cache@v3
