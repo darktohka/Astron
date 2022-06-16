@@ -84,7 +84,7 @@ jobs:
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          rm -f /usr/lib/*/libodbc*.so
+          sudo rm -f /usr/lib/*/libodbc*.so
       - name: Cache OpenSSL
         id: cache-openssl
         uses: actions/cache@v3
