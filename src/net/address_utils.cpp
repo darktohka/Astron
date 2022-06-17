@@ -54,7 +54,7 @@ static std::pair<bool, uvw::socket_address> parse_address(const std::string &ip,
         unbracketed_addr.erase(std::remove(unbracketed_addr.begin(), unbracketed_addr.end(), '['), unbracketed_addr.end());
         unbracketed_addr.erase(std::remove(unbracketed_addr.begin(), unbracketed_addr.end(), ']'), unbracketed_addr.end());
         if(uv_ip6_addr(unbracketed_addr.c_str(), port, &sockaddr) == 0) {
-            return std::pair<bool, uvw::socket_address>(true, uvw::details::address<uvw::ipv6>(&sockaddr));
+            return std::pair<bool, uvw::socket_address>(true, uvw::details::sock_addr(sockaddr));
         }
         else {
             return std::pair<bool, uvw::socket_address>(false, uvw::socket_address());
@@ -62,7 +62,7 @@ static std::pair<bool, uvw::socket_address> parse_address(const std::string &ip,
     } else {
         sockaddr_in sockaddr;
         if (uv_ip4_addr(ip.c_str(), port, &sockaddr) == 0) {
-            uvw::socket_address addr = uvw::details::address<uvw::ipv4>(&sockaddr);
+            uvw::socket_address addr = uvw::details::sock_addr(sockaddr);
             return std::pair<bool, uvw::socket_address>(true, addr);
         }
         else {
@@ -155,13 +155,13 @@ std::vector<uvw::socket_address> resolve_address(const std::string &hostspec, ui
             while (addrinfo != nullptr) {
                 if (addrinfo->ai_family == AF_INET && addrinfo->ai_socktype == socktype) {
                     sockaddr_in* sockaddr = reinterpret_cast<sockaddr_in*>(addrinfo->ai_addr);
-                    uvw::socket_address addr = uvw::details::address<uvw::ipv4>(sockaddr);
+                    uvw::socket_address addr = uvw::details::sock_addr(*sockaddr);
                     addr.port = port;
                     ret.push_back(addr);
                 }
                 else if (addrinfo->ai_family == AF_INET6 && addrinfo->ai_socktype == socktype) {
                     sockaddr_in6* sockaddr = reinterpret_cast<sockaddr_in6*>(addrinfo->ai_addr);
-                    uvw::socket_address addr = uvw::details::address<uvw::ipv6>(sockaddr);
+                    uvw::socket_address addr = uvw::details::sock_addr(*sockaddr);
                     addr.port = port;
                     ret.push_back(addr);
                 }
