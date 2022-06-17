@@ -69,17 +69,12 @@ jobs:
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          sudo apt-get install -y ninja-build
-      - name: Setup Ninja on Mac
+          sudo apt-get install -y ninja-build libltdl-dev
+      - name: Setup Ninja, Bison, Flex, libtool on Mac
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          brew install ninja
-      - name: Install Bison and Flex on Mac
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          brew install bison flex
+          brew install ninja bison flex libtool
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2.2
         with:
