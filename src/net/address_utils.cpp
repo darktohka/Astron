@@ -148,8 +148,8 @@ std::vector<uvw::socket_address> resolve_address(const std::string &hostspec, ui
     if(result.first) {
         ret.push_back(result.second);
     } else {
-        std::shared_ptr<uvw::GetAddrInfoReq> request = loop->resource<uvw::GetAddrInfoReq>();
-        auto results = request->nodeAddrInfoSync(host);
+        std::shared_ptr<uvw::get_addr_info_req> request = loop->resource<uvw::get_addr_info_req>();
+        auto results = request->node_addr_info_sync(host);
         if (results.first) {
             addrinfo* addrinfo = results.second.get();
             while (addrinfo != nullptr) {
