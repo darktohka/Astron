@@ -68,7 +68,7 @@ void Timeout::reset()
     }
 
     m_timer->stop();
-    m_timer->start(uvw::timer_handle::Time{m_timeout_interval}, uvw::timer_handle::Time{0});
+    m_timer->start(uvw::timer_handle::time{m_timeout_interval}, uvw::timer_handle::time{0});
 }
 
 bool Timeout::cancel()

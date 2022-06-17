@@ -16,7 +16,7 @@ void TaskQueue::init_queue()
     assert(std::this_thread::get_id() == g_main_thread_id);
 
     m_flush_handle = g_loop->resource<uvw::async_handle>();
-    m_flush_handle->on<uvw::AsyncEvent>([self = this](const uvw::AsyncEvent&, uvw::async_handle&) {
+    m_flush_handle->on<uvw::async_event>([self = this](const uvw::async_event&, uvw::async_handle&) {
         self->flush_tasks();
     });
 }

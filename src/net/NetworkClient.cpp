@@ -61,7 +61,7 @@ void NetworkClient::initialize(const std::shared_ptr<uvw::tcp_handle>& socket,
     m_socket = socket;
 
     m_socket->no_delay(true);
-    m_socket->keep_alive(true, uvw::tcp_handle::Time{60});
+    m_socket->keep_alive(true, uvw::tcp_handle::time{60});
 
     m_async_timer = g_loop->resource<uvw::timer_handle>();
 
@@ -341,7 +341,7 @@ void NetworkClient::flush_send_queue(std::unique_lock<std::mutex> &lock)
     // Start async timeout, a value of 0 indicates the writes shouldn't timeout (used in debugging)
     if(m_write_timeout > 0) {
         m_async_timer->stop();
-        m_async_timer->start(uvw::timer_handle::Time{m_write_timeout}, uvw::timer_handle::Time{0});
+        m_async_timer->start(uvw::timer_handle::time{m_write_timeout}, uvw::timer_handle::time{0});
     }
 
     // Bombs away!
