@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    g_loop = uvw::loop::getDefault();
+    g_loop = uvw::loop::get_default();
     g_main_thread_id = std::this_thread::get_id();
 
     g_logger->set_color_enabled(prettyPrint);
