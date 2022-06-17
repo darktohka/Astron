@@ -306,7 +306,7 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/uvw" \
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}" \
-            -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} -DBUILD_UVW_SHARED_LIB=OFF -DBUILD_UVW_LIBS=ON \
+            -DBUILD_UVW_SHARED_LIB=OFF -DBUILD_UVW_LIBS=ON \
             -DBUILD_TESTING=OFF -DBUILD_DOCS=OFF -DFETCH_LIBUV=OFF -DFIND_LIBUV=ON ..
       - name: Build and install uvw
         if: steps.cache-uvw.outputs.cache-hit != 'true'
