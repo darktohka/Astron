@@ -45,7 +45,7 @@ jobs:
           echo "::set-output name=MONGOCXX_COMMIT::$(curl -sS https://api.github.com/repos/mongodb/mongo-cxx-driver/commits/master | jq -r .sha)" && \
           echo "::set-output name=OPENSSL_COMMIT::$(curl -sS https://api.github.com/repos/openssl/openssl/commits/master | jq -r .sha)" && \
           echo "::set-output name=LIBUV_COMMIT::$(curl -sS https://api.github.com/repos/libuv/libuv/commits/v1.x | jq -r .sha)" && \
-          echo "::set-output name=UVW_COMMIT::$(curl -sS https://api.github.com/repos/darktohka/uvw/commits/patch-1 | jq -r .sha)" && \
+          echo "::set-output name=UVW_COMMIT::$(curl -sS https://api.github.com/repos/darktohka/uvw/commits/test | jq -r .sha)" && \
           echo "::set-output name=YAML_COMMIT::$(curl -sS https://api.github.com/repos/darktohka/yaml-cpp/commits/patch-1 | jq -r .sha)" && \
           echo "::set-output name=SOCI_COMMIT::$(curl -sS https://api.github.com/repos/soci/soci/commits/master | jq -r .sha)" && \
           echo "::set-output name=MONGOC_VERSION::$(curl -sS https://api.github.com/repos/mongodb/mongo-c-driver/releases | jq -r .[0].tag_name)" && \
@@ -294,7 +294,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: "darktohka/uvw"
-          ref: "patch-1"
+          ref: "test"
           path: "uvw"
       - name: Setup uvw
         if: steps.cache-uvw.outputs.cache-hit != 'true'
