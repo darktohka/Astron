@@ -5,7 +5,7 @@
 #include <uvw.hpp>
 #include "util/TaskQueue.h"
 
-// This class abstracts the uvw::TimerHandle timer in order to provide a generic
+// This class abstracts the uvw::timer_handle timer in order to provide a generic
 // facility for timeouts. Once constructed, this class will wait a certain
 // amount of time and then call the function. The timeout must be canceled
 // with cancel() before you invalidate your callback.
@@ -45,7 +45,7 @@ class Timeout
 
   private:
     std::shared_ptr<uvw::loop> m_loop;
-    std::shared_ptr<uvw::TimerHandle> m_timer;
+    std::shared_ptr<uvw::timer_handle> m_timer;
     TimeoutCallback m_callback;
     unsigned long m_timeout_interval;
 

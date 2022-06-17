@@ -166,7 +166,7 @@ private:
 
     NetworkHandler *m_handler;
     std::shared_ptr<uvw::tcp_handle> m_socket;
-    std::shared_ptr<uvw::TimerHandle> m_async_timer;
+    std::shared_ptr<uvw::timer_handle> m_async_timer;
     std::unique_ptr<HAProxyHandler> m_haproxy_handler;
     uvw::socket_address m_remote;
     uvw::socket_address m_local;

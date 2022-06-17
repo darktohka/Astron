@@ -28,9 +28,9 @@ void Timeout::setup()
 {
     assert(m_timer == nullptr);
 
-    m_timer = m_loop->resource<uvw::TimerHandle>();
+    m_timer = m_loop->resource<uvw::timer_handle>();
 
-    m_timer->on<uvw::TimerEvent>([self = this](const uvw::TimerEvent&, uvw::TimerHandle&) {
+    m_timer->on<uvw::timer_event>([self = this](const uvw::timer_event&, uvw::timer_handle&) {
         self->timer_callback();
     });
 }
@@ -68,7 +68,7 @@ void Timeout::reset()
     }
 
     m_timer->stop();
-    m_timer->start(uvw::TimerHandle::Time{m_timeout_interval}, uvw::TimerHandle::Time{0});
+    m_timer->start(uvw::timer_handle::Time{m_timeout_interval}, uvw::timer_handle::Time{0});
 }
 
 bool Timeout::cancel()
