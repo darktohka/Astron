@@ -186,7 +186,7 @@ jobs:
         shell: bash
         working-directory: openssl
         run: |
-          make -j$(nproc) install_dev
+          PATH="/usr/lib/ccache:${PATH}" make -j$(nproc) install_dev
       - name: Cleanup OpenSSL
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         shell: bash
