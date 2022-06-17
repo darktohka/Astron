@@ -80,7 +80,7 @@ jobs:
         with:
           key: ${{ matrix.os }}-ccache
       - name: Remove Mono.framework
-        if: runner.os == 'Mac'
+        if: runner.os == 'macOS'
         shell: bash
         run: |
           sudo rm -rf /Library/Frameworks/Mono.framework
