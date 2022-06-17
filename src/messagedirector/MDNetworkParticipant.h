@@ -5,7 +5,7 @@
 class MDNetworkParticipant : public MDParticipantInterface, public NetworkHandler
 {
   public:
-    MDNetworkParticipant(const std::shared_ptr<uvw::TCPHandle> &socket);
+    MDNetworkParticipant(const std::shared_ptr<uvw::tcp_handle> &socket);
     ~MDNetworkParticipant();
     virtual void initialize()
     {
@@ -15,7 +15,7 @@ class MDNetworkParticipant : public MDParticipantInterface, public NetworkHandle
     virtual void handle_datagram(DatagramHandle dg, DatagramIterator &dgi);
   private:
     virtual void receive_datagram(DatagramHandle dg);
-    virtual void receive_disconnect(const uvw::ErrorEvent &evt);
+    virtual void receive_disconnect(const uvw::error_event &evt);
 
     std::shared_ptr<NetworkClient> m_client;
 };

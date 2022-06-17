@@ -44,7 +44,7 @@ class MessageDirector final : public ChannelMap
 
     // For MDUpstream (and subclasses) to call.
     void receive_datagram(DatagramHandle dg);
-    void receive_disconnect(const uvw::ErrorEvent &evt);
+    void receive_disconnect(const uvw::error_event &evt);
 
   protected:
     void on_add_channel(channel_t c);
@@ -89,8 +89,8 @@ class MessageDirector final : public ChannelMap
     void recall_post_removes(channel_t sender);
 
     // I/O OPERATIONS
-    void handle_connection(const std::shared_ptr<uvw::TCPHandle> &socket);
-    void handle_error(const uvw::ErrorEvent& evt);
+    void handle_connection(const std::shared_ptr<uvw::tcp_handle> &socket);
+    void handle_error(const uvw::error_event& evt);
 };
 
 

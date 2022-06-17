@@ -33,12 +33,12 @@ class ClientAgent final : public Role
     ClientAgent(RoleConfig rolconfig);
 
     // handle_tcp generates a new Client object from a raw tcp connection.
-    void handle_tcp(const std::shared_ptr<uvw::TCPHandle> &socket,
-                    const uvw::Addr &remote,
-                    const uvw::Addr &local,
+    void handle_tcp(const std::shared_ptr<uvw::tcp_handle> &socket,
+                    const uvw::socket_address &remote,
+                    const uvw::socket_address &local,
                     const bool haproxy_mode);
 
-    void handle_error(const uvw::ErrorEvent& evt);
+    void handle_error(const uvw::error_event& evt);
 
     // handle_datagram handles Datagrams received from the message director.
     // Currently the ClientAgent does not handle any datagrams,

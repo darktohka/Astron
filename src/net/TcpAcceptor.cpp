@@ -8,19 +8,19 @@ TcpAcceptor::TcpAcceptor(TcpAcceptorCallback &callback, AcceptorErrorCallback& e
 
 void TcpAcceptor::start_accept()
 {
-    m_acceptor->on<uvw::ListenEvent>([this](const uvw::ListenEvent &, uvw::TCPHandle &srv) {
-        std::shared_ptr<uvw::TCPHandle> client = srv.loop().resource<uvw::TCPHandle>();
+    m_acceptor->on<uvw::ListenEvent>([this](const uvw::ListenEvent &, uvw::tcp_handle &srv) {
+        std::shared_ptr<uvw::tcp_handle> client = srv.loop().resource<uvw::tcp_handle>();
         srv.accept(*client);
         handle_accept(client);
     });
 
-    m_acceptor->on<uvw::ErrorEvent>([this](const uvw::ErrorEvent &evt, uvw::TCPHandle &) {
+    m_acceptor->on<uvw::error_event>([this](const uvw::error_event &evt, uvw::tcp_handle &) {
         // Inform the error callback:
         this->m_err_callback(evt);
     });
 }
 
-void TcpAcceptor::handle_accept(const std::shared_ptr<uvw::TCPHandle>& socket)
+void TcpAcceptor::handle_accept(const std::shared_ptr<uvw::tcp_handle>& socket)
 {
     if(!m_started) {
         // We were turned off sometime before this operation completed; ignore.
@@ -28,12 +28,12 @@ void TcpAcceptor::handle_accept(const std::shared_ptr<uvw::TCPHandle>& socket)
         return;
     }
 
-    uvw::Addr remote = socket->peer();
-    uvw::Addr local = socket->sock();
+    uvw::socket_address remote = socket->peer();
+    uvw::socket_address local = socket->sock();
     handle_endpoints(socket, remote, local);
 }
 
-void TcpAcceptor::handle_endpoints(const std::shared_ptr<uvw::TCPHandle>& socket, const uvw::Addr& remote, const uvw::Addr& local)
+void TcpAcceptor::handle_endpoints(const std::shared_ptr<uvw::tcp_handle>& socket, const uvw::socket_address& remote, const uvw::socket_address& local)
 {
     // Inform the callback:
     m_callback(socket, remote, local, m_haproxy_mode);

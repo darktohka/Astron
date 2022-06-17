@@ -26,4 +26,4 @@ extern std::unique_ptr<ConfigFile> g_config;
 extern EventSender g_eventsender;
 extern std::unordered_map<doid_t, Uberdog> g_uberdogs;
 extern std::thread::id g_main_thread_id;
-extern std::shared_ptr<uvw::Loop> g_loop;
+extern std::shared_ptr<uvw::loop> g_loop;

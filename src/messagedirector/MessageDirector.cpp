@@ -301,15 +301,15 @@ void MessageDirector::on_remove_range(channel_t lo, channel_t hi)
     }
 }
 
-void MessageDirector::handle_connection(const std::shared_ptr<uvw::TCPHandle> &socket)
+void MessageDirector::handle_connection(const std::shared_ptr<uvw::tcp_handle> &socket)
 {
-    uvw::Addr remote = socket->peer();
+    uvw::socket_address remote = socket->peer();
     m_log.info() << "Got an incoming connection from "
                  << remote.ip << ":" << remote.port << std::endl;
     new MDNetworkParticipant(socket); // It deletes itself when connection is lost
 }
 
-void MessageDirector::handle_error(const uvw::ErrorEvent& evt)
+void MessageDirector::handle_error(const uvw::error_event& evt)
 {
     if(evt.code() == UV_EADDRINUSE || evt.code() == UV_EADDRNOTAVAIL) {
         m_log.fatal() << "Failed to bind to address: " << evt.what() << "\n";
@@ -374,7 +374,7 @@ void MessageDirector::receive_datagram(DatagramHandle dg)
     route_datagram(nullptr, dg);
 }
 
-void MessageDirector::receive_disconnect(const uvw::ErrorEvent &evt)
+void MessageDirector::receive_disconnect(const uvw::error_event &evt)
 {
     m_log.fatal() << "Lost connection to upstream md: " << evt.what() << std::endl;
     exit(1);

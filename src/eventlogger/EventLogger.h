@@ -18,14 +18,14 @@ class EventLogger final : public Role
 
   private:
     LogCategory m_log;
-    std::shared_ptr<uvw::UDPHandle> m_socket;
+    std::shared_ptr<uvw::udp_handle> m_socket;
     std::string m_file_format;
     std::unique_ptr<std::ofstream> m_file;
-    uvw::Addr m_local;
+    uvw::socket_address m_local;
 
     void bind(const std::string &addr);
     void open_log();
     void cycle_log();
     void start_receive();
-    void process_packet(DatagramHandle dg, const uvw::Addr& sender);
+    void process_packet(DatagramHandle dg, const uvw::socket_address& sender);
 };

@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     // We need to ignore SIGPIPE issues ourselves for Linux (libuv issue #1254)
     signal(SIGPIPE, SIG_IGN);
 #endif
- 
+
     int config_arg_index = -1;
     cfg_file = "astrond.yml";
     LogSeverity sev = g_logger->get_min_severity();
@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    g_loop = uvw::Loop::getDefault();
+    g_loop = uvw::loop::getDefault();
     g_main_thread_id = std::this_thread::get_id();
 
     g_logger->set_color_enabled(prettyPrint);

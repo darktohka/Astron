@@ -2,7 +2,7 @@
 #include <thread>
 #include <uvw.hpp>
 
-typedef std::function<void(const uvw::ErrorEvent& evt)> AcceptorErrorCallback;
+typedef std::function<void(const uvw::error_event& evt)> AcceptorErrorCallback;
 
 class NetworkAcceptor
 {
@@ -23,8 +23,8 @@ class NetworkAcceptor
 
   protected:
     std::unique_ptr<std::thread> m_thread;
-    std::shared_ptr<uvw::Loop> m_loop;
-    std::shared_ptr<uvw::TCPHandle> m_acceptor;
+    std::shared_ptr<uvw::loop> m_loop;
+    std::shared_ptr<uvw::tcp_handle> m_acceptor;
 
     bool m_started = false;
     bool m_haproxy_mode = false;

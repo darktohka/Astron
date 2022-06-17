@@ -42,7 +42,7 @@ void EventLogger::bind(const std::string &addr)
 
     m_local = addresses.front();
 
-    m_socket = g_loop->resource<uvw::UDPHandle>();
+    m_socket = g_loop->resource<uvw::udp_handle>();
     m_socket->bind(m_local);
     start_receive();
 }
@@ -74,7 +74,7 @@ void EventLogger::cycle_log()
     process_packet(event.make_datagram(), m_local);
 }
 
-void EventLogger::process_packet(DatagramHandle dg, const uvw::Addr& sender)
+void EventLogger::process_packet(DatagramHandle dg, const uvw::socket_address& sender)
 {
     DatagramIterator dgi(dg);
     std::stringstream stream;
@@ -119,7 +119,7 @@ void EventLogger::process_packet(DatagramHandle dg, const uvw::Addr& sender)
 
 void EventLogger::start_receive()
 {
-    m_socket->on<uvw::UDPDataEvent>([this](const uvw::UDPDataEvent &event, uvw::UDPHandle &) {
+    m_socket->on<uvw::udp_data_event>([this](const uvw::udp_data_event &event, uvw::udp_handle &) {
         m_log.trace() << "Got packet from " << event.sender.ip
                       << ":" << event.sender.port << ".\n";
 

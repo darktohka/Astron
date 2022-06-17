@@ -17,20 +17,20 @@ void NetworkAcceptor::bind(const std::string &address,
 {
     assert(std::this_thread::get_id() == g_main_thread_id);
 
-    m_acceptor = m_loop->resource<uvw::TCPHandle>();
+    m_acceptor = m_loop->resource<uvw::tcp_handle>();
     m_acceptor->simultaneousAccepts(true);
 
-    std::vector<uvw::Addr> addresses = resolve_address(address, default_port, m_loop);
+    std::vector<uvw::socket_address> addresses = resolve_address(address, default_port, m_loop);
 
     if(addresses.size() == 0) {
-        this->m_err_callback(uvw::ErrorEvent{(int)UV_EADDRNOTAVAIL});
+        this->m_err_callback(uvw::error_event{(int)UV_EADDRNOTAVAIL});
         return;
     }
 
     // Setup listen/error event handlers.
     start_accept();
 
-    for (uvw::Addr& addr : addresses) {
+    for (uvw::socket_address& addr : addresses) {
         m_acceptor->bind(addr);
     }
 }

@@ -85,9 +85,9 @@ ClientAgent::ClientAgent(RoleConfig roleconfig) : Role(roleconfig), m_net_accept
 }
 
 // handle_tcp generates a new Client object from a raw tcp connection.
-void ClientAgent::handle_tcp(const std::shared_ptr<uvw::TCPHandle> &socket,
-                             const uvw::Addr &remote,
-                             const uvw::Addr &local,
+void ClientAgent::handle_tcp(const std::shared_ptr<uvw::tcp_handle> &socket,
+                             const uvw::socket_address &remote,
+                             const uvw::socket_address &local,
                              const bool haproxy_mode)
 {
     m_log->debug() << "Got an incoming connection from "
@@ -96,7 +96,7 @@ void ClientAgent::handle_tcp(const std::shared_ptr<uvw::TCPHandle> &socket,
     ClientFactory::singleton().instantiate_client(m_client_type, m_clientconfig, this, socket, remote, local, haproxy_mode);
 }
 
-void ClientAgent::handle_error(const uvw::ErrorEvent& evt)
+void ClientAgent::handle_error(const uvw::error_event& evt)
 {
     if(evt.code() == UV_EADDRINUSE || evt.code() == UV_EADDRNOTAVAIL) {
         m_log->fatal() << "Failed to bind to address: " << evt.what() << "\n";

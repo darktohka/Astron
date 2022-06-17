@@ -19,10 +19,10 @@ void MDNetworkUpstream::connect(const std::string &address)
     m_connector->connect(address, 7199, callback, err_callback);
 }
 
-void MDNetworkUpstream::on_connect(const std::shared_ptr<uvw::TCPHandle> &socket)
+void MDNetworkUpstream::on_connect(const std::shared_ptr<uvw::tcp_handle> &socket)
 {
     if(socket == nullptr) {
-        m_message_director->receive_disconnect(uvw::ErrorEvent{(int)UV_EADDRNOTAVAIL});
+        m_message_director->receive_disconnect(uvw::error_event{(int)UV_EADDRNOTAVAIL});
         exit(1);
     }
 
@@ -68,7 +68,7 @@ void MDNetworkUpstream::flush_send_queue()
     m_is_sending = false;
 }
 
-void MDNetworkUpstream::on_connect_error(const uvw::ErrorEvent& evt)
+void MDNetworkUpstream::on_connect_error(const uvw::error_event& evt)
 {
     m_message_director->receive_disconnect(evt);
 }
@@ -113,7 +113,7 @@ void MDNetworkUpstream::receive_datagram(DatagramHandle dg)
     m_message_director->receive_datagram(dg);
 }
 
-void MDNetworkUpstream::receive_disconnect(const uvw::ErrorEvent &evt)
+void MDNetworkUpstream::receive_disconnect(const uvw::error_event &evt)
 {
     m_message_director->receive_disconnect(evt);
 }

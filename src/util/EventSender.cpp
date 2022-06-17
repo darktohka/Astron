@@ -17,7 +17,7 @@ void EventSender::init(const std::string& target)
     }
 
     m_loop = g_loop;
-    m_socket = g_loop->resource<uvw::UDPHandle>();
+    m_socket = g_loop->resource<uvw::udp_handle>();
 
     m_log.debug() << "Resolving target..." << std::endl;
     auto addresses = resolve_address(target, 7197, m_loop);

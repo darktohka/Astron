@@ -30,7 +30,7 @@ protected:
     virtual void receive_datagram(DatagramHandle dg) = 0;
     // receive_disconnect is called when the remote host closes the
     //     connection or otherwise when the tcp connection is lost.
-    virtual void receive_disconnect(const uvw::ErrorEvent &) = 0;
+    virtual void receive_disconnect(const uvw::error_event &) = 0;
 
     friend class NetworkClient;
 };
@@ -41,15 +41,15 @@ public:
     NetworkClient(NetworkHandler *handler);
     ~NetworkClient();
 
-    inline void initialize(const std::shared_ptr<uvw::TCPHandle>& socket)
+    inline void initialize(const std::shared_ptr<uvw::tcp_handle>& socket)
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         initialize(socket, lock);
     }
 
-    inline void initialize(const std::shared_ptr<uvw::TCPHandle>& socket,
-                           const uvw::Addr& remote,
-                           const uvw::Addr& local,
+    inline void initialize(const std::shared_ptr<uvw::tcp_handle>& socket,
+                           const uvw::socket_address& remote,
+                           const uvw::socket_address& local,
                            const bool haproxy_mode)
     {
         std::unique_lock<std::mutex> lock(m_mutex);
@@ -97,13 +97,13 @@ public:
         return is_connected(lock);
     }
 
-    inline uvw::Addr get_remote()
+    inline uvw::socket_address get_remote()
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         return m_remote;
     }
 
-    inline uvw::Addr get_local()
+    inline uvw::socket_address get_local()
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         return m_local;
@@ -125,14 +125,14 @@ public:
 
 private:
     // Locked versions of public functions:
-    inline void initialize(const std::shared_ptr<uvw::TCPHandle>& socket, std::unique_lock<std::mutex> &lock)
+    inline void initialize(const std::shared_ptr<uvw::tcp_handle>& socket, std::unique_lock<std::mutex> &lock)
     {
         initialize(socket, socket->peer(), socket->sock(), false, lock);
     }
 
-    void initialize(const std::shared_ptr<uvw::TCPHandle>& socket,
-                    const uvw::Addr &remote,
-                    const uvw::Addr &local,
+    void initialize(const std::shared_ptr<uvw::tcp_handle>& socket,
+                    const uvw::socket_address &remote,
+                    const uvw::socket_address &local,
                     const bool haproxy_mode,
                     std::unique_lock<std::mutex> &lock);
     void disconnect(uv_errno_t ec, std::unique_lock<std::mutex> &lock);
@@ -165,11 +165,11 @@ private:
     char *m_send_buf = nullptr;
 
     NetworkHandler *m_handler;
-    std::shared_ptr<uvw::TCPHandle> m_socket;
+    std::shared_ptr<uvw::tcp_handle> m_socket;
     std::shared_ptr<uvw::TimerHandle> m_async_timer;
     std::unique_ptr<HAProxyHandler> m_haproxy_handler;
-    uvw::Addr m_remote;
-    uvw::Addr m_local;
+    uvw::socket_address m_remote;
+    uvw::socket_address m_local;
     std::vector<uint8_t> m_data_buf;
 
     // HAProxy specific:

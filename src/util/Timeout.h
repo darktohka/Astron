@@ -44,7 +44,7 @@ class Timeout
     void initialize(unsigned long ms, TimeoutCallback callback);
 
   private:
-    std::shared_ptr<uvw::Loop> m_loop;
+    std::shared_ptr<uvw::loop> m_loop;
     std::shared_ptr<uvw::TimerHandle> m_timer;
     TimeoutCallback m_callback;
     unsigned long m_timeout_interval;

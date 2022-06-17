@@ -9,4 +9,4 @@ std::unique_ptr<ConfigFile> g_config(new ConfigFile);
 EventSender g_eventsender;
 std::unordered_map<doid_t, Uberdog> g_uberdogs;
 std::thread::id g_main_thread_id;
-std::shared_ptr<uvw::Loop> g_loop;
+std::shared_ptr<uvw::loop> g_loop;

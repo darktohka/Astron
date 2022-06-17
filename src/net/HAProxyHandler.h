@@ -15,8 +15,8 @@ class HAProxyHandler
         std::vector<uint8_t> m_data_buf;
         std::vector<uint8_t> m_tlv_buf;
 
-        uvw::Addr m_local;
-        uvw::Addr m_remote;
+        uvw::socket_address m_local;
+        uvw::socket_address m_remote;
 
         bool m_is_local = false;
 
@@ -31,12 +31,12 @@ class HAProxyHandler
     public:
         size_t consume(const uint8_t* buffer, size_t length);
 
-        inline uvw::Addr get_local() const
+        inline uvw::socket_address get_local() const
         {
             return m_local;
         }
 
-        inline uvw::Addr get_remote() const
+        inline uvw::socket_address get_remote() const
         {
             return m_remote;
         }

@@ -59,8 +59,8 @@ class AstronClient : public Client, public NetworkHandler
     Timeout* m_heartbeat_timer = nullptr;
 
   public:
-    AstronClient(ConfigNode config, ClientAgent* client_agent, const std::shared_ptr<uvw::TCPHandle> &socket,
-                 const uvw::Addr &remote, const uvw::Addr &local, const bool haproxy_mode) :
+    AstronClient(ConfigNode config, ClientAgent* client_agent, const std::shared_ptr<uvw::tcp_handle> &socket,
+                 const uvw::socket_address &remote, const uvw::socket_address &local, const bool haproxy_mode) :
         Client(config, client_agent), m_client(std::make_shared<NetworkClient>(this)),
         m_config(config),
         m_clean_disconnect(false), m_relocate_owned(relocate_owned.get_rval(config)),
@@ -204,7 +204,7 @@ class AstronClient : public Client, public NetworkHandler
     //     connection or otherwise when the tcp connection is lost.
     // Note: In the Astron client protocol, the server is normally
     //       responsible for terminating the connection.
-    virtual void receive_disconnect(const uvw::ErrorEvent &evt)
+    virtual void receive_disconnect(const uvw::error_event &evt)
     {
         lock_guard<recursive_mutex> lock(m_client_lock);
 

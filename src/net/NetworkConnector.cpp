@@ -2,14 +2,14 @@
 #include "address_utils.h"
 #include "core/global.h"
 
-NetworkConnector::NetworkConnector(const std::shared_ptr<uvw::Loop> &loop) : m_loop(loop)
+NetworkConnector::NetworkConnector(const std::shared_ptr<uvw::loop> &loop) : m_loop(loop)
 {
 }
 
 void NetworkConnector::do_connect(const std::string &address,
                                   uint16_t port)
 {
-    std::vector<uvw::Addr> addresses = resolve_address(address, port, m_loop);
+    std::vector<uvw::socket_address> addresses = resolve_address(address, port, m_loop);
 
     if(addresses.size() == 0) {
         if(m_connect_callback != nullptr)
@@ -38,14 +38,14 @@ void NetworkConnector::connect(const std::string &address, unsigned int default_
     m_connect_callback = callback;
     m_err_callback = err_callback;
 
-    m_socket = m_loop->resource<uvw::TCPHandle>();
+    m_socket = m_loop->resource<uvw::tcp_handle>();
 
-    m_socket->once<uvw::ConnectEvent>([self = shared_from_this()](const uvw::ConnectEvent &, uvw::TCPHandle&) {
+    m_socket->once<uvw::ConnectEvent>([self = shared_from_this()](const uvw::ConnectEvent &, uvw::tcp_handle&) {
         if(self->m_connect_callback != nullptr)
             self->m_connect_callback(self->m_socket);
     });
 
-    m_socket->once<uvw::ErrorEvent>([self = shared_from_this()](const uvw::ErrorEvent &evt, uvw::TCPHandle&) {
+    m_socket->once<uvw::error_event>([self = shared_from_this()](const uvw::error_event &evt, uvw::tcp_handle&) {
         if(self->m_err_callback != nullptr)
             self->m_err_callback(evt);
     });

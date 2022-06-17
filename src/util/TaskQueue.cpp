@@ -15,8 +15,8 @@ void TaskQueue::init_queue()
 {
     assert(std::this_thread::get_id() == g_main_thread_id);
 
-    m_flush_handle = g_loop->resource<uvw::AsyncHandle>();
-    m_flush_handle->on<uvw::AsyncEvent>([self = this](const uvw::AsyncEvent&, uvw::AsyncHandle&) {
+    m_flush_handle = g_loop->resource<uvw::async_handle>();
+    m_flush_handle->on<uvw::AsyncEvent>([self = this](const uvw::AsyncEvent&, uvw::async_handle&) {
         self->flush_tasks();
     });
 }
@@ -25,7 +25,7 @@ void TaskQueue::enqueue_task(TaskCallback task)
 {
     {
         std::lock_guard<std::mutex> lock(m_queue_mutex);
-        m_task_queue.push(task);        
+        m_task_queue.push(task);
     }
 
     if(std::this_thread::get_id() != g_main_thread_id) {
@@ -41,7 +41,7 @@ void TaskQueue::flush_tasks()
     assert(std::this_thread::get_id() == g_main_thread_id);
 
     if(m_in_flush) {
-        // We're already in the middle of a flush_tasks operation.    
+        // We're already in the middle of a flush_tasks operation.
         return;
     }
 

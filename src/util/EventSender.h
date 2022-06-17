@@ -36,8 +36,8 @@ class EventSender
     }
   private:
     LogCategory m_log;
-    std::shared_ptr<uvw::Loop> m_loop;
-    std::shared_ptr<uvw::UDPHandle> m_socket;
-    uvw::Addr m_target;
+    std::shared_ptr<uvw::loop> m_loop;
+    std::shared_ptr<uvw::udp_handle> m_socket;
+    uvw::socket_address m_target;
     bool m_enabled;
 };
