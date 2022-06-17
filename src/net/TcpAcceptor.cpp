@@ -9,7 +9,7 @@ TcpAcceptor::TcpAcceptor(TcpAcceptorCallback &callback, AcceptorErrorCallback& e
 void TcpAcceptor::start_accept()
 {
     m_acceptor->on<uvw::listen_event>([this](const uvw::listen_event &, uvw::tcp_handle &srv) {
-        std::shared_ptr<uvw::tcp_handle> client = srv.loop().resource<uvw::tcp_handle>();
+        std::shared_ptr<uvw::tcp_handle> client = srv.parent().resource<uvw::tcp_handle>();
         srv.accept(*client);
         handle_accept(client);
     });
