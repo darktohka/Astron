@@ -56,8 +56,8 @@ jobs:
           echo "::set-output name=SOCI_COMMIT::$(curl $CURL_OPTIONS https://api.github.com/repos/soci/soci/commits/master | jq -r .sha)" && \
           echo "::set-output name=MONGOC_VERSION::$(curl $CURL_OPTIONS https://api.github.com/repos/mongodb/mongo-c-driver/releases | jq -r first.tag_name)" && \
           FLEXBISON_REPLY="$(curl $CURL_OPTIONS https://api.github.com/repos/lexxmark/winflexbison/releases)" && \
-          echo "::set-output name=FLEXBISON_BUILD_ID::$(echo $FLEXBISON_REPLY | jq -r '(first.assets | first).id)'" && \
-          echo "::set-output name=FLEXBISON_LINK::$(echo $FLEXBISON_REPLY | jq -r '(first.assets | first).browser_download_url)'" && \
+          echo "::set-output name=FLEXBISON_BUILD_ID::$(echo $FLEXBISON_REPLY | jq -r '(first.assets | first).id')" && \
+          echo "::set-output name=FLEXBISON_LINK::$(echo $FLEXBISON_REPLY | jq -r '(first.assets | first).browser_download_url')" && \
           SQLITE_FILENAME="$(curl $CURL_OPTIONS https://sqlite.org/download.html | sed -nE "s/^PRODUCT,.*UTC,(.*),.*,.*$/\1/p")" && \
           echo "::set-output name=SQLITE_FILENAME::$SQLITE_FILENAME" && \
           echo "::set-output name=SQLITE_HASH::$(echo "$SQLITE_FILENAME" | openssl sha256 | cut -d ' ' -f 2)" && \
