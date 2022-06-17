@@ -41,7 +41,7 @@ void EventSender::send(DatagramHandle dg)
     }
 
     m_log.trace() << "Sending event..." << std::endl;
-    m_socket->trySend(m_target, (char*) dg->get_data(), dg->size());
+    m_socket->try_send(m_target, (char*) dg->get_data(), dg->size());
 }
 
 // And now the convenience class:

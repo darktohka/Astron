@@ -60,8 +60,8 @@ void NetworkClient::initialize(const std::shared_ptr<uvw::tcp_handle>& socket,
 
     m_socket = socket;
 
-    m_socket->noDelay(true);
-    m_socket->keepAlive(true, uvw::tcp_handle::Time{60});
+    m_socket->no_delay(true);
+    m_socket->keep_alive(true, uvw::tcp_handle::Time{60});
 
     m_async_timer = g_loop->resource<uvw::timer_handle>();
 
@@ -173,7 +173,7 @@ void NetworkClient::start_receive()
     // Sets up all the handlers needed for the NetworkClient instance and starts receiving data from the stream.
     assert(std::this_thread::get_id() == g_main_thread_id);
 
-    m_socket->on<uvw::DataEvent>([self = shared_from_this()](const uvw::DataEvent &event, uvw::tcp_handle &) {
+    m_socket->on<uvw::data_event>([self = shared_from_this()](const uvw::data_event &event, uvw::tcp_handle &) {
         if(self->m_haproxy_handler != nullptr) {
             size_t bytes_consumed = self->m_haproxy_handler->consume(reinterpret_cast<const uint8_t*>(event.data.get()), event.length);
             if(bytes_consumed < event.length || bytes_consumed == 0) {
@@ -212,15 +212,15 @@ void NetworkClient::start_receive()
         self->handle_disconnect((uv_errno_t)event.code());
     });
 
-    m_socket->on<uvw::EndEvent>([self = shared_from_this()](const uvw::EndEvent&, uvw::tcp_handle &) {
+    m_socket->on<uvw::end_event>([self = shared_from_this()](const uvw::end_event&, uvw::tcp_handle &) {
         self->handle_disconnect(UV_EOF);
     });
 
-    m_socket->on<uvw::CloseEvent>([self = shared_from_this()](const uvw::CloseEvent&, uvw::tcp_handle &) {
+    m_socket->on<uvw::close_event>([self = shared_from_this()](const uvw::close_event&, uvw::tcp_handle &) {
         self->handle_disconnect(UV_EOF);
     });
 
-    m_socket->on<uvw::WriteEvent>([self = shared_from_this()](const uvw::WriteEvent&, uvw::tcp_handle &) {
+    m_socket->on<uvw::write_event>([self = shared_from_this()](const uvw::write_event&, uvw::tcp_handle &) {
         self->send_finished();
     });
 
