@@ -421,13 +421,15 @@ jobs:
         working-directory: odbc/src
         shell: bash
         run: |
-          PATH="/usr/lib/ccache:${PATH}" ./configure CFLAGS="${{ matrix.c_flags }}" --enable-static --disable-shared --prefix="${{ github.workspace }}/libraries/odbc"
+          ./configure CFLAGS="${{ matrix.c_flags }}" --enable-static --disable-shared \
+            --disable-dependency-tracking --disable-iconv \
+            --prefix="${{ github.workspace }}/libraries/odbc"
       - name: Build and install ODBC
         if: runner.os != 'Windows' && steps.cache-odbc.outputs.cache-hit != 'true'
         working-directory: odbc/src
         shell: bash
         run: |
-          make -j$(nproc) install
+          PATH="/usr/lib/ccache:${PATH}" make -j$(nproc) install
       - name: Checkout SOCI
         if: steps.cache-soci.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
