@@ -4,7 +4,7 @@ on: [push, workflow_dispatch, repository_dispatch]
 
 env:
   CMAKE_PREFIX_PATH: "${{ github.workspace }}\\libraries\\odbc;${{ github.workspace }}\\libraries\\sqlite;${{ github.workspace }}\\libraries\\bison;${{ github.workspace }}\\libraries\\uvw;${{ github.workspace }}\\libraries\\boost;${{ github.workspace }}\\libraries\\openssl;${{ github.workspace }}\\libraries\\soci;${{ github.workspace }}\\libraries\\mongoc;${{ github.workspace }}\\libraries\\mongocxx;${{ github.workspace }}\\libraries\\libuv;${{ github.workspace }}\\libraries\\yaml;${{ github.workspace }}\\libraries"
-  CURL_OPTIONS: "-sS --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40"
+  CURL_OPTIONS: "-fsSL --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40"
 
 jobs:
   build:
@@ -38,11 +38,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     name: Build for ${{ matrix.os }}
     steps:
-      - name: Install jq on Mac
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          brew install jq
       - name: Query third party commits
         id: query
         shell: bash
