@@ -18,7 +18,7 @@ void NetworkAcceptor::bind(const std::string &address,
     assert(std::this_thread::get_id() == g_main_thread_id);
 
     m_acceptor = m_loop->resource<uvw::tcp_handle>();
-    m_acceptor->simultaneousAccepts(true);
+    m_acceptor->simultaneous_accepts(true);
 
     std::vector<uvw::socket_address> addresses = resolve_address(address, default_port, m_loop);
 
