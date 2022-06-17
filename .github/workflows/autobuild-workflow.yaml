@@ -38,6 +38,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     name: Build for ${{ matrix.os }}
     steps:
+      - name: Install jq on Mac
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          brew install jq
       - name: Query third party commits
         id: query
         shell: bash
