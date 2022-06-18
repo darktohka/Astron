@@ -74,7 +74,8 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          brew install ninja bison flex && brew link ninja bison flex
+          brew install ninja bison flex && \
+            for lib in bison flex; do find /usr/local/opt/$lib/bin -maxdepth 1 -type f -exec ln -s {} /usr/local/bin \;; done
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2.2
         with:
