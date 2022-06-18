@@ -32,7 +32,7 @@ jobs:
             cxx_standard: "23"
             c_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fPIE -Wformat -Wformat-security"
             cxx_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fPIE -Wformat -Wformat-security"
-            exe_linker_flags: "-s"
+            exe_linker_flags: ""
             openssl_arch: "darwin64-x86_64"
             openssl_options: ""
     runs-on: ${{ matrix.os }}
@@ -567,6 +567,18 @@ jobs:
         with:
           name: ${{ runner.os }}-astron
           path: ${{ github.workspace }}/build/astron/bin/astrond.exe
+      - name: Upload unstripped Astron on Linux and Mac
+        if: runner.os != 'Windows'
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-astron-debug
+          path: ${{ github.workspace }}/build/astron/bin/astrond
+      - name: Strip Astron
+        if: runner.os != 'Windows'
+        working-directory: build/astron/bin
+        shell: bash
+        run: |
+          strip astrond
       - name: Upload Astron on Linux and Mac
         if: runner.os != 'Windows'
         uses: actions/upload-artifact@v3
