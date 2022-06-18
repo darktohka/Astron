@@ -16,6 +16,7 @@ jobs:
             cxx_standard: "23"
             c_flags: ""
             cxx_flags: "/Zc:__cplusplus /EHsc"
+            strip_flags: ""
             exe_linker_flags: "/alternatename:__imp___std_init_once_complete=__imp_InitOnceComplete /alternatename:__imp___std_init_once_begin_initialize=__imp_InitOnceBeginInitialize"
             openssl_arch: "VC-WIN64A"
             openssl_options: "/FS"
@@ -24,6 +25,7 @@ jobs:
             cxx_standard: "20"
             c_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fstack-clash-protection -fPIE -Wformat -Wformat-security"
             cxx_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fstack-clash-protection -fPIE -Wformat -Wformat-security"
+            strip_flags: "-s"
             exe_linker_flags: ""
             openssl_arch: "linux-x86_64"
             openssl_options: ""
@@ -32,6 +34,7 @@ jobs:
             cxx_standard: "23"
             c_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fPIE -Wformat -Wformat-security"
             cxx_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fPIE -Wformat -Wformat-security"
+            strip_flags: "-s"
             exe_linker_flags: ""
             openssl_arch: "darwin64-x86_64"
             openssl_options: ""
@@ -552,7 +555,7 @@ jobs:
           cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/build/astron" \
-            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }} -s" \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }} ${{ matrix.strip_flags }}" \
             -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} \
             -DCMAKE_EXE_LINKER_FLAGS="${{ matrix.exe_linker_flags }}" \
             ..
