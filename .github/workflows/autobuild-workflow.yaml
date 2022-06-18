@@ -24,7 +24,7 @@ jobs:
             cxx_standard: "20"
             c_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fstack-clash-protection -fPIE -Wformat -Wformat-security"
             cxx_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fstack-clash-protection -fPIE -Wformat -Wformat-security"
-            exe_linker_flags: "-s"
+            exe_linker_flags: ""
             openssl_arch: "linux-x86_64"
             openssl_options: ""
           - os: macos-12
@@ -291,6 +291,35 @@ jobs:
         shell: bash
         run: |
           rm -rf libuv
+      - name: Checkout uvw
+        if: steps.cache-uvw.outputs.cache-hit != 'true'
+        uses: actions/checkout@v3
+        with:
+          repository: "darktohka/uvw"
+          ref: "test"
+          path: "uvw"
+      - name: Setup uvw
+        if: steps.cache-uvw.outputs.cache-hit != 'true'
+        working-directory: uvw/build
+        shell: bash
+        run: |
+          cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/uvw" \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}" \
+            -DBUILD_UVW_SHARED_LIB=OFF -DBUILD_UVW_LIBS=ON \
+            -DBUILD_TESTING=OFF -DBUILD_DOCS=OFF -DFETCH_LIBUV=OFF -DFIND_LIBUV=ON ..
+      - name: Build and install uvw
+        if: steps.cache-uvw.outputs.cache-hit != 'true'
+        working-directory: uvw/build
+        shell: bash
+        run: |
+          cmake --build . --parallel 2 --target install --config Release
+      - name: Cleanup uvw
+        if: steps.cache-uvw.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          rm -rf uvw
       - name: Checkout yaml-cpp
         if: steps.cache-yaml.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
@@ -512,3 +541,57 @@ jobs:
         shell: bash
         run: |
           rm -rf boost
+      - name: Checkout Astron
+        uses: actions/checkout@v3
+        with:
+          path: "Astron"
+      - name: Setup Astron
+        working-directory: Astron/build
+        shell: bash
+        run: |
+          cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/build/astron" \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}" \
+            -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} \
+            -DCMAKE_EXE_LINKER_FLAGS="${{ matrix.exe_linker_flags }}" \
+            -DSTATIC_ASTRON=ON \
+            ..
+      - name: Build and install Astron
+        working-directory: Astron/build
+        shell: bash
+        run: |
+          cmake --build . --parallel 2 --target install --config Release
+      - name: Upload Astron on Windows
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-astron
+          path: ${{ github.workspace }}/build/astron/bin/astrond.exe
+      - name: Upload unstripped Astron on Linux and Mac
+        if: runner.os != 'Windows'
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-astron-debug
+          path: ${{ github.workspace }}/build/astron/bin/astrond
+      - name: Strip Astron
+        if: runner.os != 'Windows'
+        working-directory: build/astron/bin
+        shell: bash
+        run: |
+          strip astrond
+      - name: Upload Astron on Linux and Mac
+        if: runner.os != 'Windows'
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-astron
+          path: ${{ github.workspace }}/build/astron/bin/astrond
+      - name: Package libraries
+        shell: bash
+        run: |
+          tar -acf astron-libraries.tar.zst libraries
+      - name: Upload libraries
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-libraries
+          path: astron-libraries.tar.zst
