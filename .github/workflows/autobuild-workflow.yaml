@@ -552,7 +552,7 @@ jobs:
           cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/build/astron" \
-            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}" \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }} -s" \
             -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} \
             -DCMAKE_EXE_LINKER_FLAGS="${{ matrix.exe_linker_flags }}" \
             ..
