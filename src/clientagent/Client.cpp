@@ -3,7 +3,6 @@
 #include "core/msgtypes.h"
 #include "clientagent/ClientMessages.h"
 #include "clientagent/ClientAgent.h"
-#include <iostream>
 
 using namespace std;
 using dclass::Class;
@@ -48,10 +47,7 @@ void Client::annihilate()
 {
     lock_guard<recursive_mutex> lock(m_client_lock);
 
-    m_log->warning() << "Annihilating client..." << endl;
-
     if(is_terminated()) {
-        m_log->warning() << "Client has already been terminated." << endl;
         return;
     }
 
@@ -252,8 +248,6 @@ void Client::add_interest(Interest &i, uint32_t context, channel_t caller)
     }
 
     uint32_t request_context = m_next_context++;
-
-//    m_log->warning() << "Creating pending interest..." << endl;
 
     std::shared_ptr<InterestOperation> iop = std::make_shared<InterestOperation>(
         this, m_client_agent->m_interest_timeout, i.id, context,
@@ -684,7 +678,6 @@ void Client::handle_datagram(DatagramHandle in_dg, DatagramIterator &dgi)
 
         it->second->set_expected(count);
         if(it->second->is_ready()) {
-            m_log->warning() << "Finishing pending interest (get zones count response)..." << endl;
             it->second->finish();
         }
     }
@@ -883,7 +876,6 @@ InterestOperation::InterestOperation(
     uint16_t interest_id, uint32_t client_context, uint32_t request_context,
     doid_t parent, unordered_set<zone_t> zones, channel_t caller) :
     m_client(client),
-    interestOperationId(rand() % 1000),
     m_interest_id(interest_id),
     m_client_context(client_context),
     m_request_context(request_context),
@@ -898,7 +890,7 @@ InterestOperation::InterestOperation(
 InterestOperation::~InterestOperation()
 {
     lock_guard<recursive_mutex> lock(m_client->m_client_lock);
-    std::cout << "finished: " << m_finished << endl << flush;
+
     assert(m_finished);
 }
 
@@ -922,10 +914,8 @@ void InterestOperation::timeout()
 void InterestOperation::finish(bool is_timeout)
 {
     lock_guard<recursive_mutex> lock(m_client->m_client_lock);
-    m_client->m_log->warning() << "Finishing timeout interest... timeout? " << is_timeout << " for " << interestOperationId << endl;
 
     if(!is_timeout && m_timeout != nullptr) {
-//        m_client->m_log->warning() << "Actually cancelling timeout!" << endl;
         if(!m_timeout->cancel()) {
             // The timeout is already running; let it clean up instead.
             return;
