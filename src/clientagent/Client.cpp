@@ -885,10 +885,9 @@ InterestOperation::InterestOperation(
     m_client_context(client_context),
     m_request_context(request_context),
     m_parent(parent), m_zones(zones),
-    m_timeout_interval(timeout)
+    m_timeout_interval(timeout),
+    interestOperationId(rand() % 10000)
 {
-    interestOperationId = rand() % 65536;
-    m_client->m_log->warning() << "create interest operation: " << m_client << " id " << interestOperationId << endl;
     m_callers.insert(m_callers.end(), caller);
     m_client->generate_timeout(bind(&InterestOperation::on_timeout_generate, this,
                                std::placeholders::_1));
