@@ -662,7 +662,6 @@ void Client::handle_datagram(DatagramHandle in_dg, DatagramIterator &dgi)
         m_pending_objects.emplace(dgi.read_doid(), request_context);
         it->second->queue_expected(in_dg);
         if(it->second->is_ready()) {
-            m_log->warning() << "Finishing pending interest (interest with required other)..." << endl;
             it->second->finish();
         }
         return;
