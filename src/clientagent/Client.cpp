@@ -3,7 +3,6 @@
 #include "core/msgtypes.h"
 #include "clientagent/ClientMessages.h"
 #include "clientagent/ClientAgent.h"
-#include <iostream>
 
 using namespace std;
 using dclass::Class;
@@ -48,10 +47,7 @@ void Client::annihilate()
 {
     lock_guard<recursive_mutex> lock(m_client_lock);
 
-    m_log->warning() << "Annihilating client..." << endl;
-
     if(is_terminated()) {
-        m_log->warning() << "Client has already been terminated." << endl;
         return;
     }
 
@@ -253,10 +249,10 @@ void Client::add_interest(Interest &i, uint32_t context, channel_t caller)
 
     uint32_t request_context = m_next_context++;
 
-//    m_log->warning() << "Creating pending interest..." << endl;
-
-    InterestOperation *iop = new InterestOperation(this, m_client_agent->m_interest_timeout,
-            i.id, context, request_context, i.parent, new_zones, caller);
+    std::shared_ptr<InterestOperation> iop = std::make_shared<InterestOperation>(
+        this, m_client_agent->m_interest_timeout, i.id, context,
+        request_context, i.parent, new_zones, caller
+    );
     m_pending_interests.emplace(request_context, iop);
 
     DatagramPtr resp = Datagram::create();
@@ -626,7 +622,7 @@ void Client::handle_datagram(DatagramHandle in_dg, DatagramIterator &dgi)
         doid_t parent = dgi.read_doid();
         zone_t zone = dgi.read_zone();
         for(auto& it : m_pending_interests) {
-            InterestOperation *interest_operation = it.second;
+            std::shared_ptr<InterestOperation> &interest_operation = it.second;
             if(interest_operation->m_parent == parent &&
                interest_operation->m_zones.find(zone) != interest_operation->m_zones.end()) {
 
@@ -681,7 +677,6 @@ void Client::handle_datagram(DatagramHandle in_dg, DatagramIterator &dgi)
 
         it->second->set_expected(count);
         if(it->second->is_ready()) {
-            m_log->warning() << "Finishing pending interest (get zones count response)..." << endl;
             it->second->finish();
         }
     }
@@ -880,7 +875,6 @@ InterestOperation::InterestOperation(
     uint16_t interest_id, uint32_t client_context, uint32_t request_context,
     doid_t parent, unordered_set<zone_t> zones, channel_t caller) :
     m_client(client),
-    interestOperationId(rand() % 10000),
     m_interest_id(interest_id),
     m_client_context(client_context),
     m_request_context(request_context),
@@ -894,12 +888,20 @@ InterestOperation::InterestOperation(
 
 InterestOperation::~InterestOperation()
 {
+    lock_guard<recursive_mutex> lock(m_client->m_client_lock);
+
     assert(m_finished);
 }
 
 void InterestOperation::on_timeout_generate(Timeout* timeout)
 {
+    lock_guard<recursive_mutex> lock(m_client->m_client_lock);
     assert(std::this_thread::get_id() == g_main_thread_id);
+
+    if (m_finished) {
+        timeout->cancel();
+        return;
+    }
 
     m_timeout = timeout;
     m_timeout->initialize(m_timeout_interval, bind(&InterestOperation::timeout, this));
@@ -908,9 +910,6 @@ void InterestOperation::on_timeout_generate(Timeout* timeout)
 
 void InterestOperation::timeout()
 {
-    std::cout << "timeout...! client " << m_client << endl;
-    std::cout << flush;
-    std::cout << "with id: " <<interestOperationId << endl << flush;
     lock_guard<recursive_mutex> lock(m_client->m_client_lock);
     m_client->m_log->warning() << "Interest operation timed out; forcing.\n";
     finish(true);
@@ -918,10 +917,9 @@ void InterestOperation::timeout()
 
 void InterestOperation::finish(bool is_timeout)
 {
-//    m_client->m_log->warning() << "Finishing timeout interest..." << endl;
+    lock_guard<recursive_mutex> lock(m_client->m_client_lock);
 
     if(!is_timeout && m_timeout != nullptr) {
-//        m_client->m_log->warning() << "Actually cancelling timeout!" << endl;
         if(!m_timeout->cancel()) {
             // The timeout is already running; let it clean up instead.
             return;
@@ -954,9 +952,6 @@ void InterestOperation::finish(bool is_timeout)
     //       Move the queued datagrams to the stack so it is safe to delete the Operation.
     vector<DatagramHandle> dispatch = move(m_pending_datagrams);
 
-    // Delete the Interest Operation
-    m_client->m_pending_interests.erase(m_request_context);
-
     // Dispatch other received and queued messages
     for(const auto& it : dispatch) {
         DatagramIterator dgi(it);
@@ -966,7 +961,8 @@ void InterestOperation::finish(bool is_timeout)
 
     m_finished = true;
 
-    delete this;
+    // Delete the Interest Operation
+    m_client->m_pending_interests.erase(m_request_context);
 }
 
 bool InterestOperation::is_ready()
