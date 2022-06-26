@@ -28,16 +28,16 @@ jobs:
             cxx_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fstack-clash-protection -fPIE -Wformat -Wformat-security"
             exe_linker_flags: ""
             openssl_arch: "linux-x86_64"
-            openssl_options: ""
+            openssl_options: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fstack-clash-protection -fPIE -Wformat -Wformat-security"
           - os: ubuntu-20.04
             build_type: Debug
             c_standard: "17"
             cxx_standard: "20"
-            c_flags: "-ggdb -O0"
-            cxx_flags: "-ggdb -O0"
+            c_flags: "-g3 -ggdb -O0 -fno-inline"
+            cxx_flags: "-g3 -ggdb -O0 -fno-inline"
             exe_linker_flags: ""
             openssl_arch: "linux-x86_64"
-            openssl_options: ""
+            openssl_options: "-g3 -ggdb -O0 -fno-inline"
           - os: macos-12
             build_type: Release
             c_standard: "23"
@@ -48,7 +48,7 @@ jobs:
             openssl_arch: "darwin64-x86_64"
             openssl_options: ""
     runs-on: ${{ matrix.os }}
-    name: Build for ${{ matrix.os }}
+    name: Build for ${{ matrix.os }} (${{ matrix.build_type }})
     steps:
       - name: Query third party commits
         id: query
