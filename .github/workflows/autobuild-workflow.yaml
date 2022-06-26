@@ -600,10 +600,12 @@ jobs:
           name: ${{ runner.os }}-${{ matrix.build_type }}-astron
           path: ${{ github.workspace }}/build/astron/bin/astrond
       - name: Package libraries
+        if: matrix.build_type == 'Release'
         shell: bash
         run: |
           tar -acf astron-libraries.tar.zst libraries
       - name: Upload libraries
+        if: matrix.build_type == 'Release'
         uses: actions/upload-artifact@v3
         with:
           name: ${{ runner.os }}-${{ matrix.build_type }}-libraries
