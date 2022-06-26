@@ -28,7 +28,7 @@ jobs:
             cxx_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fstack-clash-protection -fPIE -Wformat -Wformat-security"
             exe_linker_flags: ""
             openssl_arch: "linux-x86_64"
-            openssl_options: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fstack-clash-protection -fPIE -Wformat -Wformat-security"
+            openssl_options: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fstack-clash-protection -Wformat -Wformat-security"
           - os: ubuntu-20.04
             build_type: Debug
             c_standard: "17"
