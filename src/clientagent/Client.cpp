@@ -881,12 +881,12 @@ InterestOperation::InterestOperation(
     uint16_t interest_id, uint32_t client_context, uint32_t request_context,
     doid_t parent, unordered_set<zone_t> zones, channel_t caller) :
     m_client(client),
+    interestOperationId(rand() % 10000),
     m_interest_id(interest_id),
     m_client_context(client_context),
     m_request_context(request_context),
     m_parent(parent), m_zones(zones),
-    m_timeout_interval(timeout),
-    interestOperationId(rand() % 10000)
+    m_timeout_interval(timeout)
 {
     m_callers.insert(m_callers.end(), caller);
     m_client->generate_timeout(bind(&InterestOperation::on_timeout_generate, this,
