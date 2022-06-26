@@ -916,7 +916,7 @@ void InterestOperation::finish(bool is_timeout)
     m_client->m_log->warning() << "Finishing timeout interest..." << endl;
 
     if(!is_timeout && m_timeout != nullptr) {
-        m_log->warning() << "Actually cancelling timeout!" << endl;
+        m_client->m_log->warning() << "Actually cancelling timeout!" << endl;
         if(!m_timeout->cancel()) {
             // The timeout is already running; let it clean up instead.
             return;
