@@ -628,7 +628,7 @@ void Client::handle_datagram(DatagramHandle in_dg, DatagramIterator &dgi)
         doid_t parent = dgi.read_doid();
         zone_t zone = dgi.read_zone();
         for(auto& it : m_pending_interests) {
-            std::unique_ptr<InterestOperation> interest_operation = it.second;
+            std::unique_ptr<InterestOperation> &interest_operation = it.second;
             if(interest_operation->m_parent == parent &&
                interest_operation->m_zones.find(zone) != interest_operation->m_zones.end()) {
 
