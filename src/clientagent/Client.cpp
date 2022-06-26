@@ -883,7 +883,7 @@ InterestOperation::InterestOperation(
     uint16_t interest_id, uint32_t client_context, uint32_t request_context,
     doid_t parent, unordered_set<zone_t> zones, channel_t caller) :
     m_client(client),
-    interestOperationId(rand() % 100),
+    interestOperationId(rand() % 1000),
     m_interest_id(interest_id),
     m_client_context(client_context),
     m_request_context(request_context),
@@ -922,7 +922,7 @@ void InterestOperation::timeout()
 void InterestOperation::finish(bool is_timeout)
 {
     lock_guard<recursive_mutex> lock(m_client->m_client_lock);
-    m_client->m_log->warning() << "Finishing timeout interest... timeout? " << is_timeout << endl;
+    m_client->m_log->warning() << "Finishing timeout interest... timeout? " << is_timeout << " for " << interestOperationId << endl;
 
     if(!is_timeout && m_timeout != nullptr) {
 //        m_client->m_log->warning() << "Actually cancelling timeout!" << endl;
