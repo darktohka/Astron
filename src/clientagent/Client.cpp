@@ -251,7 +251,7 @@ void Client::add_interest(Interest &i, uint32_t context, channel_t caller)
 
     uint32_t request_context = m_next_context++;
 
-    m_log->warning() << "Creating pending interest..." << endl;
+//    m_log->warning() << "Creating pending interest..." << endl;
 
     InterestOperation *iop = new InterestOperation(this, m_client_agent->m_interest_timeout,
             i.id, context, request_context, i.parent, new_zones, caller);
@@ -660,7 +660,7 @@ void Client::handle_datagram(DatagramHandle in_dg, DatagramIterator &dgi)
         m_pending_objects.emplace(dgi.read_doid(), request_context);
         it->second->queue_expected(in_dg);
         if(it->second->is_ready()) {
-            m_log->warning() << "Finishing pending interest (interest with required other)..." << endl;
+//            m_log->warning() << "Finishing pending interest (interest with required other)..." << endl;
             it->second->finish();
         }
         return;
@@ -913,10 +913,10 @@ void InterestOperation::timeout()
 
 void InterestOperation::finish(bool is_timeout)
 {
-    m_client->m_log->warning() << "Finishing timeout interest..." << endl;
+//    m_client->m_log->warning() << "Finishing timeout interest..." << endl;
 
     if(!is_timeout && m_timeout != nullptr) {
-        m_client->m_log->warning() << "Actually cancelling timeout!" << endl;
+//        m_client->m_log->warning() << "Actually cancelling timeout!" << endl;
         if(!m_timeout->cancel()) {
             // The timeout is already running; let it clean up instead.
             return;
