@@ -255,8 +255,10 @@ void Client::add_interest(Interest &i, uint32_t context, channel_t caller)
 
 //    m_log->warning() << "Creating pending interest..." << endl;
 
-    InterestOperation *iop = new InterestOperation(this, m_client_agent->m_interest_timeout,
-            i.id, context, request_context, i.parent, new_zones, caller);
+    std::unique_ptr<InterestOperation> iop(new InterestOperation(
+        this, m_client_agent->m_interest_timeout, i.id, context,
+        request_context, i.parent, new_zones, caller
+    ));
     m_pending_interests.emplace(request_context, iop);
 
     DatagramPtr resp = Datagram::create();
@@ -626,7 +628,7 @@ void Client::handle_datagram(DatagramHandle in_dg, DatagramIterator &dgi)
         doid_t parent = dgi.read_doid();
         zone_t zone = dgi.read_zone();
         for(auto& it : m_pending_interests) {
-            InterestOperation *interest_operation = it.second;
+            std::unique_ptr<InterestOperation> interest_operation = it.second;
             if(interest_operation->m_parent == parent &&
                interest_operation->m_zones.find(zone) != interest_operation->m_zones.end()) {
 
@@ -966,8 +968,6 @@ void InterestOperation::finish(bool is_timeout)
     }
 
     m_finished = true;
-
-    delete this;
 }
 
 bool InterestOperation::is_ready()
