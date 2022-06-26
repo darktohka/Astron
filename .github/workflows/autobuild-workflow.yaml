@@ -160,7 +160,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/bison
-          key: ${{ matrix.os }}-${{ matrix.type }}-bison-${{ steps.query.outputs.FLEXBISON_BUILD_ID }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-bison-${{ steps.query.outputs.FLEXBISON_BUILD_ID }}
       - name: Checkout OpenSSL
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
@@ -518,7 +518,7 @@ jobs:
         with:
           boost_version: "1.79.0"
           boost_install_dir: "${{ github.workspace }}"
-          platform_version: "22.04"
+          platform_version: "20.04"
       - name: Install Boost on Mac
         if: steps.cache-boost.outputs.cache-hit != 'true' && runner.os == 'macOS'
         uses: MarkusJx/install-boost@v2.3.0

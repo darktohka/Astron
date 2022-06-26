@@ -45,7 +45,11 @@ Client::~Client()
 void Client::annihilate()
 {
     lock_guard<recursive_mutex> lock(m_client_lock);
+
+    m_log->warning() << "Annihilating client..." << endl;
+
     if(is_terminated()) {
+        m_log->warning() << "Client has already been terminated." << endl;
         return;
     }
 
@@ -68,6 +72,7 @@ void Client::annihilate()
     // for loop. Using (it++) ensures that 'it' is advanced BEFORE finish() is
     // called; doing so after means the iterator is invalid!
     for(auto it = m_pending_interests.begin(); it != m_pending_interests.end();) {
+        m_log->warning() << "Finishing pending interest..." << endl;
         (it++)->second->finish();
     }
 
@@ -245,6 +250,8 @@ void Client::add_interest(Interest &i, uint32_t context, channel_t caller)
     }
 
     uint32_t request_context = m_next_context++;
+
+    m_log->warning() << "Creating pending interest..." << endl;
 
     InterestOperation *iop = new InterestOperation(this, m_client_agent->m_interest_timeout,
             i.id, context, request_context, i.parent, new_zones, caller);
@@ -653,6 +660,7 @@ void Client::handle_datagram(DatagramHandle in_dg, DatagramIterator &dgi)
         m_pending_objects.emplace(dgi.read_doid(), request_context);
         it->second->queue_expected(in_dg);
         if(it->second->is_ready()) {
+            m_log->warning() << "Finishing pending interest (interest with required other)..." << endl;
             it->second->finish();
         }
         return;
@@ -672,6 +680,7 @@ void Client::handle_datagram(DatagramHandle in_dg, DatagramIterator &dgi)
 
         it->second->set_expected(count);
         if(it->second->is_ready()) {
+            m_log->warning() << "Finishing pending interest (get zones count response)..." << endl;
             it->second->finish();
         }
     }
@@ -782,7 +791,7 @@ void Client::handle_datagram(DatagramHandle in_dg, DatagramIterator &dgi)
         // N.B.: This object visible might be still visible through an interest.
         // We don't have to touch it, just remove the ownership
         handle_remove_ownership(do_id);
-        m_owned_objects.erase(do_id);        
+        m_owned_objects.erase(do_id);
     }
     break;
     default:
@@ -877,7 +886,7 @@ InterestOperation::InterestOperation(
     m_timeout_interval(timeout)
 {
     m_callers.insert(m_callers.end(), caller);
-    m_client->generate_timeout(bind(&InterestOperation::on_timeout_generate, this, 
+    m_client->generate_timeout(bind(&InterestOperation::on_timeout_generate, this,
                                std::placeholders::_1));
 }
 
@@ -904,7 +913,10 @@ void InterestOperation::timeout()
 
 void InterestOperation::finish(bool is_timeout)
 {
+    m_log->warning() << "Finishing timeout interest..." << endl;
+
     if(!is_timeout && m_timeout != nullptr) {
+        m_log->warning() << "Actually cancelling timeout!" << endl;
         if(!m_timeout->cancel()) {
             // The timeout is already running; let it clean up instead.
             return;
