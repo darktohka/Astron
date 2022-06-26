@@ -255,11 +255,11 @@ void Client::add_interest(Interest &i, uint32_t context, channel_t caller)
 
 //    m_log->warning() << "Creating pending interest..." << endl;
 
-    std::unique_ptr<InterestOperation> iop(new InterestOperation(
+    std::unique_ptr<InterestOperation> iop = std::make_unique<InterestOperation>(
         this, m_client_agent->m_interest_timeout, i.id, context,
         request_context, i.parent, new_zones, caller
-    ));
-    m_pending_interests.emplace(request_context, iop);
+    );
+    m_pending_interests.emplace(request_context, std::move(iop));
 
     DatagramPtr resp = Datagram::create();
     resp->add_server_header(i.parent, m_channel, STATESERVER_OBJECT_GET_ZONES_OBJECTS);
