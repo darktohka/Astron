@@ -913,7 +913,7 @@ void InterestOperation::timeout()
 
 void InterestOperation::finish(bool is_timeout)
 {
-    m_log->warning() << "Finishing timeout interest..." << endl;
+    m_client->m_log->warning() << "Finishing timeout interest..." << endl;
 
     if(!is_timeout && m_timeout != nullptr) {
         m_log->warning() << "Actually cancelling timeout!" << endl;
