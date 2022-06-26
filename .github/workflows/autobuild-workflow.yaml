@@ -102,63 +102,63 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/openssl
-          key: ${{ matrix.os }}-$ {{ matrix.build_type }}-openssl-${{ steps.query.outputs.OPENSSL_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-openssl-${{ steps.query.outputs.OPENSSL_COMMIT }}
       - name: Cache mongo-c-driver
         id: cache-mongoc
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/mongoc
-          key: ${{ matrix.os }}-$ {{ matrix.build_type }}-mongoc-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-mongoc-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}
       - name: Cache mongo-cxx-driver
         id: cache-mongocxx
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/mongocxx
-          key: ${{ matrix.os }}-$ {{ matrix.build_type }}-mongocxx-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}-${{ steps.query.outputs.MONGOCXX_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-mongocxx-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}-${{ steps.query.outputs.MONGOCXX_COMMIT }}
       - name: Cache libuv
         id: cache-libuv
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/libuv
-          key: ${{ matrix.os }}-$ {{ matrix.build_type }}-libuv-${{ steps.query.outputs.LIBUV_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-libuv-${{ steps.query.outputs.LIBUV_COMMIT }}
       - name: Cache uvw
         id: cache-uvw
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/uvw
-          key: ${{ matrix.os }}-$ {{ matrix.build_type }}-uvw-${{ steps.query.outputs.LIBUV_COMMIT }}-${{ steps.query.outputs.UVW_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-uvw-${{ steps.query.outputs.LIBUV_COMMIT }}-${{ steps.query.outputs.UVW_COMMIT }}
       - name: Cache yaml-cpp
         id: cache-yaml
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/yaml
-          key: ${{ matrix.os }}-$ {{ matrix.build_type }}-yaml-${{ steps.query.outputs.YAML_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-yaml-${{ steps.query.outputs.YAML_COMMIT }}
       - name: Cache SQLite3
         id: cache-sqlite
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/sqlite
-          key: ${{ matrix.os }}-$ {{ matrix.build_type }}-sqlite-${{ steps.query.outputs.SQLITE_HASH }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-sqlite-${{ steps.query.outputs.SQLITE_HASH }}
       - name: Cache ODBC
         if: runner.os != 'Windows'
         id: cache-odbc
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/odbc
-          key: ${{ matrix.os }}-$ {{ matrix.build_type }}-unixodbc-${{ steps.query.outputs.ODBC_HASH }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-unixodbc-${{ steps.query.outputs.ODBC_HASH }}
       - name: Cache SOCI
         id: cache-soci
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/soci
-          key: ${{ matrix.os }}-$ {{ matrix.build_type }}-soci-${{ steps.query.outputs.SQLITE_HASH }}-${{ steps.query.outputs.ODBC_HASH }}-${{ steps.query.outputs.SOCI_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-soci-${{ steps.query.outputs.SQLITE_HASH }}-${{ steps.query.outputs.ODBC_HASH }}-${{ steps.query.outputs.SOCI_COMMIT }}
       - name: Cache Bison and Flex
         if: runner.os == 'Windows'
         id: cache-bison
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/bison
-          key: ${{ matrix.os }}-$ {{ matrix.type }}-bison-${{ steps.query.outputs.FLEXBISON_BUILD_ID }}
+          key: ${{ matrix.os }}-${{ matrix.type }}-bison-${{ steps.query.outputs.FLEXBISON_BUILD_ID }}
       - name: Checkout OpenSSL
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
