@@ -62,6 +62,8 @@ class InterestOperation
   public:
     Client *m_client;
 
+    uint16_t interestOperationId;
+
     uint16_t m_interest_id;
     uint32_t m_client_context;
     uint32_t m_request_context;

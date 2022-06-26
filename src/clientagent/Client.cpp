@@ -887,6 +887,8 @@ InterestOperation::InterestOperation(
     m_parent(parent), m_zones(zones),
     m_timeout_interval(timeout)
 {
+    interestOperationId = rand() % 65536;
+    m_client->m_log->warning() << "create interest operation: " << m_client << " id " << interestOperationId << endl;
     m_callers.insert(m_callers.end(), caller);
     m_client->generate_timeout(bind(&InterestOperation::on_timeout_generate, this,
                                std::placeholders::_1));
@@ -910,7 +912,7 @@ void InterestOperation::timeout()
 {
     std::cout << "timeout...! client " << m_client << endl;
     std::cout << flush;
-    std::cout << " channel " << m_client->m_channel << " state " << m_client->m_state << endl;
+    std::cout << "with id: " <<interestOperationId << endl << flush;
     lock_guard<recursive_mutex> lock(m_client->m_client_lock);
     m_client->m_log->warning() << "Interest operation timed out; forcing.\n";
     finish(true);
