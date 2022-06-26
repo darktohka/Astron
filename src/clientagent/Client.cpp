@@ -906,6 +906,7 @@ void InterestOperation::on_timeout_generate(Timeout* timeout)
 
 void InterestOperation::timeout()
 {
+    m_client->m_log->warning() << "timeout...! client " << m_client << " channel " << m_client->m_channel << " state " << m_client->m_state << endl;
     lock_guard<recursive_mutex> lock(m_client->m_client_lock);
     m_client->m_log->warning() << "Interest operation timed out; forcing.\n";
     finish(true);
