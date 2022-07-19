@@ -20,6 +20,8 @@ class NetworkConnector : public std::enable_shared_from_this<NetworkConnector>
     std::shared_ptr<uvw::loop> m_loop;
     ConnectCallback m_connect_callback;
     ConnectErrorCallback m_err_callback;
+    bool handled_error = false;
+    bool handled_connect = false;
 
     void do_connect(const std::string &address, uint16_t port);
 };
