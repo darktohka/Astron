@@ -73,6 +73,12 @@ jobs:
           ODBC_FILENAME="unixODBC-$(curl -Ss "http://ftp.unixodbc.org/?C=M;O=D" | sed -nE 's/^.*>unixODBC-(.*).tar.gz<.*$/\1/p' | head -1).tar.gz" && \
           echo "::set-output name=ODBC_FILENAME::$ODBC_FILENAME" && \
           echo "::set-output name=ODBC_HASH::$(echo "$ODBC_HASH" | openssl sha256 | cut -d ' ' -f 2)"
+      - name: Set up Clang
+        if: runner.os != 'Windows'
+        uses: egor-tensin/setup-clang@v1
+        with:
+          version: 14
+          platform: x64
       - name: Setup Visual Studio
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
