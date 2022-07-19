@@ -249,7 +249,7 @@ void Client::add_interest(Interest &i, uint32_t context, channel_t caller)
 
     uint32_t request_context = m_next_context++;
 
-    std::shared_ptr<InterestOperation> iop = std::make_shared<InterestOperation>(
+    InterestOperation *iop = new InterestOperation(
         this, m_client_agent->m_interest_timeout, i.id, context,
         request_context, i.parent, new_zones, caller
     );
@@ -622,7 +622,7 @@ void Client::handle_datagram(DatagramHandle in_dg, DatagramIterator &dgi)
         doid_t parent = dgi.read_doid();
         zone_t zone = dgi.read_zone();
         for(auto& it : m_pending_interests) {
-            std::shared_ptr<InterestOperation> &interest_operation = it.second;
+            InterestOperation *interest_operation = it.second;
             if(interest_operation->m_parent == parent &&
                interest_operation->m_zones.find(zone) != interest_operation->m_zones.end()) {
 
