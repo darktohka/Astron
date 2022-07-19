@@ -255,8 +255,9 @@ template<typename T> T handle_bson_number(const bsoncxx::types::value &value)
             throw ConversionException("Non-integer double encountered");
         }
 
-        if(d > numeric_limits<int64_t>::max() ||
-           d < numeric_limits<int64_t>::min()) {
+        // (2 ** 53) - 1
+        if(d > 9007199254740991 ||
+           d < -9007199254740991) {
             throw ConversionException("Excessively large (or small) double encountered");
         }
 
