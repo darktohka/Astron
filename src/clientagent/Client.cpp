@@ -898,11 +898,6 @@ void InterestOperation::on_timeout_generate(Timeout* timeout)
     lock_guard<recursive_mutex> lock(m_client->m_client_lock);
     assert(std::this_thread::get_id() == g_main_thread_id);
 
-    if (m_finished) {
-        timeout->cancel();
-        return;
-    }
-
     m_timeout = timeout;
     m_timeout->initialize(m_timeout_interval, bind(&InterestOperation::timeout, this));
     m_timeout->start();
@@ -952,6 +947,9 @@ void InterestOperation::finish(bool is_timeout)
     //       Move the queued datagrams to the stack so it is safe to delete the Operation.
     vector<DatagramHandle> dispatch = move(m_pending_datagrams);
 
+    // Delete the Interest Operation
+    m_client->m_pending_interests.erase(m_request_context);
+
     // Dispatch other received and queued messages
     for(const auto& it : dispatch) {
         DatagramIterator dgi(it);
@@ -961,8 +959,7 @@ void InterestOperation::finish(bool is_timeout)
 
     m_finished = true;
 
-    // Delete the Interest Operation
-    m_client->m_pending_interests.erase(m_request_context);
+    delete this;
 }
 
 bool InterestOperation::is_ready()
