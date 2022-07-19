@@ -81,13 +81,13 @@ jobs:
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2.2
         with:
-          key: ${{ matrix.os }}-clang-ccache
+          key: ${{ matrix.os }}-clang2-ccache
       - name: Enable Clang
         if: runner.os != 'Windows'
         shell: bash
         run: |
-          echo "CC='ccache clang'" >> $GITHUB_ENV && \
-          echo "CXX='ccache clang++'" >> $GITHUB_ENV
+          echo "CC=clang" >> $GITHUB_ENV && \
+          echo "CXX=clang++" >> $GITHUB_ENV
       - name: Remove Mono.framework
         if: runner.os == 'macOS'
         shell: bash
@@ -162,7 +162,7 @@ jobs:
           repository: "openssl/openssl"
           ref: "master"
           path: "openssl"
-      - name: Download Jom
+      - name: Download JomATH="/usr/lib/ccache:${PATH}" make
         if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os == 'Windows'
         uses: suisei-cn/actions-download-file@v1
         with:
@@ -190,7 +190,7 @@ jobs:
         shell: bash
         working-directory: openssl
         run: |
-          PATH="/usr/lib/ccache:${PATH}" make -j$(nproc) install_dev
+          sed -Ei "s/\"$CC/\"ccache $CC/" configdata.pm && (make || true) && make -j$(nproc) install_dev
       - name: Cleanup OpenSSL
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         shell: bash
