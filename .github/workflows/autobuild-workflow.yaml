@@ -81,7 +81,7 @@ jobs:
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2.2
         with:
-          key: ${{ matrix.os }}-clang2-ccache
+          key: ${{ matrix.os }}-lto-ccache
       - name: Enable Clang
         if: runner.os != 'Windows'
         shell: bash
@@ -98,56 +98,56 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/openssl
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-clang-openssl-${{ steps.query.outputs.OPENSSL_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto-openssl-${{ steps.query.outputs.OPENSSL_COMMIT }}
       - name: Cache mongo-c-driver
         id: cache-mongoc
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/mongoc
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-clang-mongoc-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto-mongoc-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}
       - name: Cache mongo-cxx-driver
         id: cache-mongocxx
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/mongocxx
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-clang-mongocxx-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}-${{ steps.query.outputs.MONGOCXX_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto-mongocxx-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}-${{ steps.query.outputs.MONGOCXX_COMMIT }}
       - name: Cache libuv
         id: cache-libuv
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/libuv
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-clang-libuv-${{ steps.query.outputs.LIBUV_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto-libuv-${{ steps.query.outputs.LIBUV_COMMIT }}
       - name: Cache uvw
         id: cache-uvw
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/uvw
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-clang-uvw-${{ steps.query.outputs.LIBUV_COMMIT }}-${{ steps.query.outputs.UVW_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto-uvw-${{ steps.query.outputs.LIBUV_COMMIT }}-${{ steps.query.outputs.UVW_COMMIT }}
       - name: Cache yaml-cpp
         id: cache-yaml
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/yaml
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-clang-yaml-${{ steps.query.outputs.YAML_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto-yaml-${{ steps.query.outputs.YAML_COMMIT }}
       - name: Cache SQLite3
         id: cache-sqlite
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/sqlite
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-clang-sqlite-${{ steps.query.outputs.SQLITE_HASH }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto-sqlite-${{ steps.query.outputs.SQLITE_HASH }}
       - name: Cache ODBC
         if: runner.os != 'Windows'
         id: cache-odbc
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/odbc
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-clang-unixodbc-${{ steps.query.outputs.ODBC_HASH }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto-unixodbc-${{ steps.query.outputs.ODBC_HASH }}
       - name: Cache SOCI
         id: cache-soci
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/soci
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-clang-soci-${{ steps.query.outputs.SQLITE_HASH }}-${{ steps.query.outputs.ODBC_HASH }}-${{ steps.query.outputs.SOCI_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto-soci-${{ steps.query.outputs.SQLITE_HASH }}-${{ steps.query.outputs.ODBC_HASH }}-${{ steps.query.outputs.SOCI_COMMIT }}
       - name: Cache Bison and Flex
         if: runner.os == 'Windows'
         id: cache-bison
