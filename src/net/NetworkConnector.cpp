@@ -41,11 +41,11 @@ void NetworkConnector::connect(const std::string &address, unsigned int default_
     m_socket = m_loop->resource<uvw::tcp_handle>();
 
     m_socket->on<uvw::connect_event>([self = shared_from_this()](const uvw::connect_event &, uvw::tcp_handle&) {
-        if(handled_connect) {
+        if(self->handled_connect) {
             return;
         }
 
-        handled_connect = true;
+        self->handled_connect = true;
 
         if(self->m_connect_callback != nullptr) {
             self->m_connect_callback(self->m_socket);
@@ -53,11 +53,11 @@ void NetworkConnector::connect(const std::string &address, unsigned int default_
     });
 
     m_socket->on<uvw::error_event>([self = shared_from_this()](const uvw::error_event &evt, uvw::tcp_handle&) {
-        if(handled_error) {
+        if(self->handled_error) {
             return;
         }
 
-        handled_error = true;
+        self->handled_error = true;
 
         if(self->m_err_callback != nullptr) {
             self->m_err_callback(evt);
