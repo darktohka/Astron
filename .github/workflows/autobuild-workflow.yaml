@@ -540,13 +540,13 @@ jobs:
         shell: pwsh
         working-directory: boost/boost
         run: >
-          ./bootstrap.bat; ./b2 tools/bcp; ./dist/bin/bcp icl built
+          ./bootstrap.bat; ./b2 tools/bcp; ./dist/bin/bcp icl optional tuple fusion date_time built
       - name: Build Boost on Linux and Mac
         if: steps.cache-boost.outputs.cache-hit != 'true' && runner.os != 'Windows'
         shell: bash
         working-directory: boost/boost
         run: >
-          ./bootstrap.sh; ./b2 tools/bcp; ./dist/bin/bcp icl built
+          ./bootstrap.sh; ./b2 tools/bcp; ./dist/bin/bcp icl optional tuple fusion date_time built
       - name: Package Boost
         if: steps.cache-boost.outputs.cache-hit != 'true'
         shell: bash
