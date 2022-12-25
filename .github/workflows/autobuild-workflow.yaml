@@ -65,7 +65,7 @@ jobs:
           echo "::set-output name=ODBC_FILENAME::$ODBC_FILENAME" && \
           echo "::set-output name=ODBC_HASH::$(echo "$ODBC_HASH" | openssl sha256 | cut -d ' ' -f 2)"
       - name: Set up Clang
-        if: runner.os != 'Windows' and matrix.os != 'arm64'
+        if: runner.os != 'Windows' && matrix.os != 'arm64'
         uses: egor-tensin/setup-clang@v1
         with:
           version: 14
@@ -77,7 +77,7 @@ jobs:
         if: runner.os == 'Windows'
         uses: ashutoshvarma/setup-ninja@master
       - name: Setup Ninja on Linux
-        if: runner.os == 'Linux' and matrix.os != 'arm64'
+        if: runner.os == 'Linux' && matrix.os != 'arm64'
         shell: bash
         run: |
           sudo apt-get install -y ninja-build
