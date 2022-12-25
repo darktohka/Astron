@@ -119,10 +119,8 @@ message(STATUS "Found the libuv library:")
 message("	${LIBUV_LIBRARY}\n")
 
 # uvw dependency -- required by networking
-find_package(uvw REQUIRED)
+find_path(UVW_INCLUDE_DIR NAMES uvw.hpp)
 include_directories(${UVW_INCLUDE_DIR})
-link_directories(${UVW_LIBRARY_DIR})
-add_definitions(-DUVW_AS_LIB)
 message(STATUS "Found the uvw library:")
 message("	${UVW_LIBRARY}\n")
 
