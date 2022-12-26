@@ -29,15 +29,6 @@ jobs:
             exe_linker_flags: ""
             openssl_arch: "linux-aarch64"
             openssl_options: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -flto -Wformat -Wformat-security -mcpu=ampere1"
-          - os: ubuntu-20.04
-            build_type: Debug
-            c_standard: "17"
-            cxx_standard: "20"
-            c_flags: "-g3 -ggdb -O0 -fno-inline"
-            cxx_flags: "-g3 -ggdb -O0 -fno-inline"
-            exe_linker_flags: ""
-            openssl_arch: "linux-x86_64"
-            openssl_options: "-g3 -ggdb -O0 -fno-inline"
     runs-on: ${{ matrix.os }}
     name: Build for ${{ matrix.os }} (${{ matrix.build_type }})
     steps:
