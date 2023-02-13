@@ -37,7 +37,7 @@ static BOOL handle_interrupt(DWORD)
     }
 
     /*log->info()*/
-    cerr << "Received interrupt (Ctrl + C)\n";
+    cerr << "\nReceived interrupt (Ctrl + C)\n";
     astron_shutdown(0, false);
     return true;
 }
@@ -83,6 +83,7 @@ void astron_shutdown(int code, bool throw_exception)
     if(throw_exception) {
         throw ShutdownException(code);
     }
+    exit(0); // no exception, exit with code 0
 }
 
 // astron_exit_code returns the exit code astron should exit with
