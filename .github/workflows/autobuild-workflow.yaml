@@ -52,7 +52,7 @@ jobs:
           if [[ -z "$SQLITE_FILENAME" ]]; then SQLITE_FILENAME="2022/sqlite-amalgamation-3390000.zip"; fi && \
           echo "::set-output name=SQLITE_FILENAME::$SQLITE_FILENAME" && \
           echo "::set-output name=SQLITE_HASH::$(echo "$SQLITE_FILENAME" | openssl sha256 | cut -d ' ' -f 2)" && \
-          ODBC_FILENAME="unixODBC-$(curl -Ss "http://ftp.unixodbc.org/?C=M;O=D" | sed -nE 's/^.*>unixODBC-(.*).tar.gz<.*$/\1/p' | head -1).tar.gz" && \
+          ODBC_FILENAME="$(curl -Ss "https://www.unixodbc.org/download.html" | grep "Via HTTP:" | sed -E 's/.+HREF="(.+)".+/\1/')" && \
           echo "::set-output name=ODBC_FILENAME::$ODBC_FILENAME" && \
           echo "::set-output name=ODBC_HASH::$(echo "$ODBC_HASH" | openssl sha256 | cut -d ' ' -f 2)"
       - name: Set up Clang
@@ -417,7 +417,7 @@ jobs:
         if: runner.os != 'Windows' && steps.cache-odbc.outputs.cache-hit != 'true'
         uses: suisei-cn/actions-download-file@v1
         with:
-          url: http://ftp.unixodbc.org/${{ steps.query.outputs.ODBC_FILENAME }}
+          url: https://www.unixodbc.org/${{ steps.query.outputs.ODBC_FILENAME }}
           target: odbc/
       - name: Extract ODBC
         if: runner.os != 'Windows' && steps.cache-odbc.outputs.cache-hit != 'true'
