@@ -35,7 +35,7 @@ DistributedObject::DistributedObject(StateServer *stateserver, doid_t do_id, doi
             uint16_t field_id = dgi.read_uint16();
             const Field *field = m_dclass->get_field_by_id(field_id);
             if(!field) {
-                m_log->error() << "Received unknown field with ID " << field_id 
+                m_log->error() << "Received unknown field with ID " << field_id
                                << " within an OTHER section.\n";
                 break;
             }
@@ -55,8 +55,13 @@ DistributedObject::DistributedObject(StateServer *stateserver, doid_t do_id, doi
     m_log->debug() << "Object created..." << endl;
 
     dgi.seek_payload(); // Seek back to front of payload, to read sender
+
     handle_location_change(parent_id, zone_id, dgi.read_channel());
     wake_children();
+
+    if (dclass->has_uber_view()) {
+        send_ai_entry(BCHAN_UBER);
+    }
 }
 
 DistributedObject::DistributedObject(StateServer *stateserver, channel_t sender, doid_t do_id,
@@ -76,6 +81,10 @@ DistributedObject::DistributedObject(StateServer *stateserver, channel_t sender,
     subscribe_channel(do_id);
     handle_location_change(parent_id, zone_id, sender);
     wake_children();
+
+    if (dclass->has_uber_view()) {
+        send_ai_entry(BCHAN_UBER);
+    }
 }
 
 DistributedObject::~DistributedObject()
@@ -189,6 +198,23 @@ void DistributedObject::handle_location_change(doid_t new_parent, zone_t new_zon
     // Notify AI of changing location
     if(m_ai_channel) {
         targets.insert(m_ai_channel);
+    }
+
+    // Notify uber channel if DBSS object
+    if (m_dclass->has_uber_view()) {
+        if (sender == BCHAN_UBER) {
+            m_log->warning() << "Handling location change, yet sender is uber zone.\n";
+        }
+
+        if (m_ai_channel == BCHAN_UBER && m_owner_channel == BCHAN_UBER) {
+            m_log->warning() << "Received location change where AI *and* owner channel is equal to uber zone.\n";
+        } else if (m_ai_channel == BCHAN_UBER) {
+            m_log->warning() << "Received location change where AI channel is equal to uber zone.\n";
+        } else if (m_owner_channel == BCHAN_UBER) {
+            m_log->warning() << "Received location change where owner channel is equal to uber zone.\n";
+        } else {
+            targets.insert(BCHAN_UBER);
+        }
     }
 
     // Notify Owner of changing location
@@ -310,6 +336,23 @@ void DistributedObject::annihilate(channel_t sender, bool notify_parent)
     if(m_ai_channel) {
         targets.insert(m_ai_channel);
     }
+
+    if (m_dclass->has_uber_view()) {
+        if (sender == BCHAN_UBER) {
+            m_log->warning() << "Received annihilation, yet sender is uber zone.\n";
+        }
+
+        if (m_ai_channel == BCHAN_UBER && m_owner_channel == BCHAN_UBER) {
+            m_log->warning() << "Received annihilation where AI *and* owner channel is equal to uber zone.\n";
+        } else if (m_ai_channel == BCHAN_UBER) {
+            m_log->warning() << "Received annihilation where AI channel is equal to uber zone.\n";
+        } else if (m_owner_channel == BCHAN_UBER) {
+            m_log->warning() << "Received annihilation where owner channel is equal to uber zone.\n";
+        } else {
+            targets.insert(BCHAN_UBER);
+        }
+    }
+
     DatagramPtr dg = Datagram::create(targets, sender, STATESERVER_OBJECT_DELETE_RAM);
     dg->add_doid(m_do_id);
     route_datagram(dg);
@@ -396,6 +439,23 @@ bool DistributedObject::handle_one_update(DatagramIterator &dgi, channel_t sende
     if(field->has_keyword("ownrecv") && m_owner_channel && m_owner_channel != sender) {
         targets.insert(m_owner_channel);
     }
+
+    if (m_dclass->has_uber_view()) {
+        if (sender == BCHAN_UBER) {
+            m_log->warning() << "Handling location change, yet sender is uber zone.\n";
+        }
+
+        if (m_ai_channel == BCHAN_UBER && m_owner_channel == BCHAN_UBER) {
+            m_log->warning() << "Received location change where AI *and* owner channel is equal to uber zone.\n";
+        } else if (m_ai_channel == BCHAN_UBER) {
+            m_log->warning() << "Received location change where AI channel is equal to uber zone.\n";
+        } else if (m_owner_channel == BCHAN_UBER) {
+            m_log->warning() << "Received location change where owner channel is equal to uber zone.\n";
+        } else {
+            targets.insert(BCHAN_UBER);
+        }
+    }
+
     if(targets.size()) { // TODO: Review this for efficiency?
         DatagramPtr dg = Datagram::create(targets, sender, STATESERVER_OBJECT_SET_FIELD);
         dg->add_doid(m_do_id);

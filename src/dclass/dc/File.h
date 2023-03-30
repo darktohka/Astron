@@ -4,6 +4,7 @@
 #include <string>        // std::string
 #include <vector>        // std::vector
 #include <unordered_map> // std::unordered_map
+#include <set>           // std::set
 namespace dclass   // open namespace
 {
 
@@ -111,6 +112,7 @@ class File
     std::vector<Class*> m_classes;
     std::vector<Import*> m_imports; // list of python imports in the file
     std::vector<std::string> m_keywords;
+    std::set<std::string> m_uberviews;
 
     std::vector<Field*> m_fields_by_id;
     std::vector<DistributedType*> m_types_by_id;

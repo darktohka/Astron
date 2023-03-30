@@ -30,6 +30,17 @@ const Class* Class::as_class() const
     return this;
 }
 
+void Class::set_uber_view(bool has)
+{
+    m_has_uber = has;
+}
+
+bool Class::has_uber_view() const
+{
+    return m_has_uber;
+}
+
+
 // add_parent adds a new parent to the inheritance hierarchy of the class.
 //     Note: This is normally called only during parsing.
 void Class::add_parent(Class *parent)

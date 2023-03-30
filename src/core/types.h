@@ -26,6 +26,7 @@ const doid_t INVALID_DO_ID = 0;
 /* Channel constants */
 const channel_t INVALID_CHANNEL = 0;
 const channel_t CONTROL_MESSAGE = 1;
+const channel_t BCHAN_UBER = 2;
 const channel_t BCHAN_CLIENTS = 10;
 const channel_t BCHAN_STATESERVERS = 12;
 const channel_t BCHAN_DBSERVERS = 13;

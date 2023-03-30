@@ -16,6 +16,9 @@ class Class : public Struct
     Class(File *dc_file, const std::string &name);
     virtual ~Class();
 
+    bool has_uber_view() const;
+    void set_uber_view(bool);
+
     // as_class returns this Struct as a Class if it is a Class, or nullptr otherwise.
     virtual Class* as_class();
     virtual const Class* as_class() const;
@@ -69,6 +72,8 @@ class Class : public Struct
 
     std::vector<Class*> m_parents;
     std::vector<Class*> m_children;
+
+    bool m_has_uber = false;
 };
 
 

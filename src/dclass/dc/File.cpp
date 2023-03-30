@@ -3,8 +3,14 @@
 #include "dc/DistributedType.h"
 #include "dc/Class.h"
 #include "dc/Field.h"
+#include "config/constraints.h"
 
 #include "File.h"
+#include <iostream>
+
+static ConfigGroup general_config("general");
+static ConfigVariable<bool> uberdog_uber_views("uber_views", false, global_config);
+
 namespace dclass   // open namespace
 {
 
@@ -101,6 +107,10 @@ bool File::add_class(Class *cls)
         return false;
     }
 
+    if (uberdog_uber_views.get_val() && m_uberviews.find(cls->get_name()) != m_uberviews.end()) {
+        cls->set_uber_view(true);
+    }
+
     cls->set_id(m_types_by_id.size());
     m_types_by_id.push_back(cls);
     m_classes.push_back(cls);
@@ -147,6 +157,18 @@ bool File::add_typedef(const std::string& name, DistributedType* type)
 void File::add_import(Import* import)
 {
     // TODO: Combine duplicates
+    for (const std::string& symbol : import->symbols) {
+        std::string::size_type slash_index = symbol.find('/');
+
+        if (slash_index == std::string::npos) {
+             continue;
+        }
+
+        if(symbol.substr(slash_index).find("UD") != std::string::npos) {
+            m_uberviews.insert(symbol.substr(0, slash_index));
+        }
+    }
+
     m_imports.push_back(import);
 }
 
