@@ -413,18 +413,12 @@ jobs:
         shell: bash
         run: |
           rm -rf sqlite
-      - name: Download ODBC
-        if: runner.os != 'Windows' && steps.cache-odbc.outputs.cache-hit != 'true'
-        uses: suisei-cn/actions-download-file@v1
-        with:
-            url: https://www.unixodbc.org/${{ steps.query.outputs.ODBC_FILENAME }}
-            target: odbc/
-      - name: Extract ODBC
+      - name: Download and extract ODBC
         if: runner.os != 'Windows' && steps.cache-odbc.outputs.cache-hit != 'true'
         shell: bash
         working-directory: odbc
         run: |
-          tree . && tar -xaf *.tar.gz && rm -f *.tar.gz && mv unixODBC-* src
+           rm -rf src && wget -q "https://www.unixodbc.org/$ODBC_FILENAME" -O - | tar -xz && mv unixODBC-* src
       - name: Setup ODBC
         if: runner.os != 'Windows' && steps.cache-odbc.outputs.cache-hit != 'true'
         working-directory: odbc/src
