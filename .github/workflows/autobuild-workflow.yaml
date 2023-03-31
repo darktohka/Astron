@@ -55,7 +55,6 @@ jobs:
           ODBC_FILENAME="$(curl -Ss "https://www.unixodbc.org/download.html" | grep "Via HTTP:" | sed -E 's/.+HREF="(.+)".+/\1/')" && \
           echo "::set-output name=ODBC_FILENAME::$ODBC_FILENAME" && \
           echo "::set-output name=ODBC_HASH::$(echo "$ODBC_HASH" | openssl sha256 | cut -d ' ' -f 2)"
-      - name: Set up Clang
         if: runner.os != 'Windows' && matrix.os != 'arm64'
         uses: egor-tensin/setup-clang@v1
         with:
@@ -416,7 +415,7 @@ jobs:
       - name: Download and extract ODBC
         if: runner.os != 'Windows' && steps.cache-odbc.outputs.cache-hit != 'true'
         shell: bash
-        working-directory: odbc/src
+        working-directory: odbc
         run: |
           wget -q "https://download.nus.edu.sg/mirror/ubuntu/pool/main/u/unixodbc/unixodbc_2.3.11.orig.tar.gz" -O - | tar -xz --strip-components=1
       - name: Setup ODBC
@@ -429,7 +428,7 @@ jobs:
             --prefix="${{ github.workspace }}/libraries/odbc"
       - name: Build and install ODBC
         if: runner.os != 'Windows' && steps.cache-odbc.outputs.cache-hit != 'true'
-        working-directory: odbc/src
+        working-directory: odbc
         shell: bash
         run: |
           PATH="/usr/lib/ccache:${PATH}" make -j$(nproc) install
