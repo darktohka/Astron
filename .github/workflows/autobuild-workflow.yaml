@@ -5,7 +5,7 @@ on: [push, workflow_dispatch, repository_dispatch]
 env:
   CMAKE_PREFIX_PATH: "${{ github.workspace }}\\libraries\\odbc;${{ github.workspace }}\\libraries\\sqlite;${{ github.workspace }}\\libraries\\bison;${{ github.workspace }}\\libraries\\uvw;${{ github.workspace }}\\libraries\\boost;${{ github.workspace }}\\libraries\\openssl;${{ github.workspace }}\\libraries\\soci;${{ github.workspace }}\\libraries\\mongoc;${{ github.workspace }}\\libraries\\mongocxx;${{ github.workspace }}\\libraries\\libuv;${{ github.workspace }}\\libraries\\yaml;${{ github.workspace }}\\libraries"
   CURL_OPTIONS: "-fsSL --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40"
-  GITHUB_CURL: "--header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'"
+  GITHUB_CURL: "-H \"Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}\""
 
 jobs:
   build:
