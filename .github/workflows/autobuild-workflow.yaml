@@ -421,7 +421,7 @@ jobs:
           wget -q "https://download.nus.edu.sg/mirror/ubuntu/pool/main/u/unixodbc/unixodbc_2.3.11.orig.tar.gz" -O - | tar -xz --strip-components=1
       - name: Setup ODBC
         if: runner.os != 'Windows' && steps.cache-odbc.outputs.cache-hit != 'true'
-        working-directory: odbc/src
+        working-directory: odbc
         shell: bash
         run: |
           ./configure CFLAGS="${{ matrix.c_flags }}" --enable-static --disable-shared \
