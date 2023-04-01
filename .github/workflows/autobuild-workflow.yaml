@@ -493,7 +493,7 @@ jobs:
           mkdir -p boost/boost/built libraries/boost/include libraries/boost/cmake
       - name: Install Boost on Windows
         if: steps.cache-boost.outputs.cache-hit != 'true' && runner.os == 'Windows'
-        uses: MarkusJx/install-boost@v2.3.0
+        uses: MarkusJx/install-boost@v2.4.1
         with:
           boost_version: "1.81.0"
           boost_install_dir: "${{ github.workspace }}"
@@ -501,14 +501,14 @@ jobs:
           toolset: msvc
       - name: Install Boost on Linux
         if: steps.cache-boost.outputs.cache-hit != 'true' && runner.os == 'Linux'
-        uses: MarkusJx/install-boost@v2.3.0
+        uses: MarkusJx/install-boost@v2.4.1
         with:
           boost_version: "1.81.0"
           boost_install_dir: "${{ github.workspace }}"
           platform_version: "20.04"
       - name: Install Boost on Mac
         if: steps.cache-boost.outputs.cache-hit != 'true' && runner.os == 'macOS'
-        uses: MarkusJx/install-boost@v2.3.0
+        uses: MarkusJx/install-boost@v2.4.1
         with:
           boost_version: "1.81.0"
           boost_install_dir: "${{ github.workspace }}"
@@ -536,7 +536,7 @@ jobs:
         shell: bash
         working-directory: boost/boost/built
         run: |
-          mv boost "${{ github.workspace }}/libraries/boost/include/" && cp ../tools/cmake/include/*.cmake "${{ github.workspace }}/libraries/boost/cmake/" && find "${{ github.workspace }}/libraries/boost"
+          rm -rf "${{ github.workspace }}/libraries/boost/include/" && mv boost "${{ github.workspace }}/libraries/boost/include/" && cp ../tools/cmake/include/*.cmake "${{ github.workspace }}/libraries/boost/cmake/" && find "${{ github.workspace }}/libraries/boost"
       - name: Cleanup Boost
         if: steps.cache-boost.outputs.cache-hit != 'true'
         shell: bash
