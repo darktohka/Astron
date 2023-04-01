@@ -92,7 +92,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")	### Windows requires winsock
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")		### Linux requires pthreads
-	list(APPEND EXTRA_LIBS pthread rt)
+	list(APPEND EXTRA_LIBS pthread rt dl)
 endif()
 
 ### YAML Depedency -- required by config, used by yaml database ###
