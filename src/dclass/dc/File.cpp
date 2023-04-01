@@ -8,8 +8,8 @@
 #include "File.h"
 #include <iostream>
 
-static ConfigGroup general_config("general");
-static ConfigVariable<bool> uberdog_uber_views("uber_views", false, general_config);
+static ConfigGroup dc_config("dc");
+static ConfigVariable<bool> uberdog_uber_views("uber_views", false, dc_config);
 
 namespace dclass   // open namespace
 {
