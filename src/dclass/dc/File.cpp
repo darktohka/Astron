@@ -9,7 +9,7 @@
 #include <iostream>
 
 static ConfigGroup general_config("general");
-static ConfigVariable<bool> uberdog_uber_views("uber_views", false, global_config);
+static ConfigVariable<bool> uberdog_uber_views("uber_views", false, general_config);
 
 namespace dclass   // open namespace
 {

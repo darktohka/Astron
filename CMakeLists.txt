@@ -106,7 +106,7 @@ endif()
 message(STATUS "Found the following YamlCpp library:")
 message("  ${YAML_CPP_LIBRARIES}\n")
 
-set(BUILD_YAML ON) # ON CACHE BOOL "Stuff"
+set(BUILD_YAML ON) # ON CACHE BOOL
 if(BUILD_YAML)
 	add_definitions(-DASTRON_WITH_YAML)
 endif()
