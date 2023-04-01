@@ -610,13 +610,13 @@ jobs:
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ runner.os }}-astron
+          name: ${{ matrix.os }}-astron
           path: ${{ github.workspace }}/build/astron/bin/astrond.exe
       - name: Upload unstripped Astron on Linux and Mac
         if: runner.os != 'Windows' && matrix.build_type == 'Release'
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ runner.os }}-astron-debug
+          name: ${{ matrix.os }}-astron-debug
           path: ${{ github.workspace }}/build/astron/bin/astrond
       - name: Strip Astron
         if: runner.os != 'Windows' && matrix.build_type == 'Release'
@@ -628,7 +628,7 @@ jobs:
         if: runner.os != 'Windows'
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ runner.os }}-${{ matrix.build_type }}-astron
+          name: ${{ matrix.os }}-${{ matrix.build_type }}-astron
           path: ${{ github.workspace }}/build/astron/bin/astrond
       - name: Package libraries
         if: matrix.build_type == 'Release'
@@ -639,5 +639,5 @@ jobs:
         if: matrix.build_type == 'Release'
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ runner.os }}-${{ matrix.build_type }}-libraries
+          name: ${{ matrix.os }}-${{ matrix.build_type }}-libraries
           path: astron-libraries.tar.zst
