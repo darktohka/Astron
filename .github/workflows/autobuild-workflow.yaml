@@ -59,7 +59,7 @@ jobs:
         if: runner.os != 'Windows' && matrix.os != 'arm64'
         uses: egor-tensin/setup-clang@v1
         with:
-          version: 14
+          version: 17
           platform: x64
       - name: Setup Visual Studio
         if: runner.os == 'Windows'
@@ -67,16 +67,16 @@ jobs:
       - name: Setup Ninja on Windows
         if: runner.os == 'Windows'
         uses: ashutoshvarma/setup-ninja@master
-      - name: Setup Ninja on Linux
+      - name: Setup Ninja and Autotools on Linux
         if: runner.os == 'Linux' && matrix.os != 'arm64'
         shell: bash
         run: |
-          sudo apt-get install -y ninja-build
+          sudo apt-get install -y ninja-build autoconf automake libtool autotools-dev
       - name: Setup Ninja, Bison, Flex on Mac
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          brew install ninja bison flex && \
+          brew install ninja bison flex autoconf automake libtool && \
             for lib in bison flex; do find /usr/local/opt/$lib/bin -maxdepth 1 -type f -exec ln -s {} /usr/local/bin \;; done
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2.2
