@@ -471,6 +471,11 @@ jobs:
         shell: bash
         run: |
           PATH="/usr/lib/ccache:${PATH}" make -j$(nproc) install
+      - name: Cleanup ODBC
+        if: steps.cache-odbc.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          rm -rf odbc
       - name: Checkout SOCI
         if: steps.cache-soci.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
