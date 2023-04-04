@@ -102,7 +102,7 @@ jobs:
         if: matrix.os == 'ubuntu-22.04'
         shell: bash
         run: |
-          sudo rm /usr/bin/ld /usr/bin/ld.lld && sudo ln -s /usr/bin/ld.lld-16 /usr/bin/ld.lld && ln -s /usr/bin/ld.lld /usr/bin/ld
+          ls /usr/bin/ld* && sudo rm /usr/bin/ld && sudo ln -s /usr/bin/ld.lld-16 /usr/bin/ld.lld && ln -s /usr/bin/ld.lld /usr/bin/ld
       - name: Remove Mono.framework
         if: runner.os == 'macOS'
         shell: bash
