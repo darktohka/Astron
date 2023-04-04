@@ -102,8 +102,8 @@ jobs:
         if: matrix.os == 'ubuntu-22.04'
         shell: bash
         run: |
-          sudo apt-get install -y lld && \
-            sudo rm /usr/bin/ld /usr/bin/ld.bfd /usr/bin/ld.gold && \
+          sudo rm /usr/bin/ld* && \
+            sudo apt-get install -y lld && \
             sudo ln -s /usr/bin/ld.lld /usr/bin/ld
       - name: Remove Mono.framework
         if: runner.os == 'macOS'
