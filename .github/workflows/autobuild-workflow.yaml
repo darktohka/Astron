@@ -38,15 +38,6 @@ jobs:
             exe_linker_flags: ""
             openssl_arch: "linux-aarch64"
             openssl_options: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -flto -Wformat -Wformat-security -mcpu=ampere1"
-          - os: macos-12
-            build_type: Release
-            c_standard: "23"
-            cxx_standard: "23"
-            c_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fPIE -Wformat -Wformat-security"
-            cxx_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fPIE -Wformat -Wformat-security"
-            exe_linker_flags: ""
-            openssl_arch: "darwin64-x86_64"
-            openssl_options: ""
     runs-on: ${{ matrix.os }}
     name: Build for ${{ matrix.os }} (${{ matrix.build_type }})
     steps:
