@@ -69,8 +69,7 @@ jobs:
         if: matrix.os == 'ubuntu-22.04'
         shell: bash
         run: |
-          sudo apt-get purge -y llvm* *clang* && \
-            sudo rm /usr/local/bin/*clang*
+          sudo apt-get purge -y llvm* *clang*
       - name: Set up Clang
         if: runner.os != 'Windows' && runner.os != 'macOS' && matrix.os != 'arm64'
         uses: egor-tensin/setup-clang@v1
@@ -108,7 +107,7 @@ jobs:
         if: matrix.os == 'ubuntu-22.04'
         shell: bash
         run: |
-          sudo rm /usr/bin/ld* && \
+          sudo rm /usr/local/bin/*clang* /usr/bin/ld* && \
             sudo apt-get install -y lld && \
             sudo ln -s /usr/bin/ld.lld /usr/bin/ld
       - name: Remove Mono.framework
