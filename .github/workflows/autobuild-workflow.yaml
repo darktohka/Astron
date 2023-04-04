@@ -20,7 +20,7 @@ jobs:
             exe_linker_flags: "/alternatename:__imp___std_init_once_complete=__imp_InitOnceComplete /alternatename:__imp___std_init_once_begin_initialize=__imp_InitOnceBeginInitialize"
             openssl_arch: "VC-WIN64A"
             openssl_options: "/FS"
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             build_type: Release
             c_standard: "17"
             cxx_standard: "20"
