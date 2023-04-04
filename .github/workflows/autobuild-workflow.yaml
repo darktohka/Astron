@@ -95,7 +95,7 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          brew install ninja bison flex autoconf automake libtool && \
+          brew install ninja bison flex autoconf automake libtool llvm && \
             for lib in bison flex; do find /usr/local/opt/$lib/bin -maxdepth 1 -type f -exec ln -s {} /usr/local/bin \;; done
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2.8
@@ -107,6 +107,11 @@ jobs:
         run: |
           echo "CC=clang" >> $GITHUB_ENV && \
           echo "CXX=clang++" >> $GITHUB_ENV
+      - name: Fix Clang linker
+        if: matrix.os == 'ubuntu-22.04'
+        shell: bash
+        run: |
+          sudo rm /usr/bin/ld && sudo ln -s /usr/bin/ld.lld /usr/bin/ld
       - name: Remove Mono.framework
         if: runner.os == 'macOS'
         shell: bash
