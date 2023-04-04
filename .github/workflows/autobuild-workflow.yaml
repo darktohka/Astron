@@ -215,7 +215,7 @@ jobs:
         shell: bash
         working-directory: openssl
         run: |
-          sed -Ei "s/\"$CC/\"ccache $CC/" configdata.pm && (make || true) && make -j$(nproc) install_dev
+          sed -E -i'' "s/\"$CC/\"ccache $CC/" configdata.pm && (make || true) && make -j$(nproc) install_dev
       - name: Cleanup OpenSSL
         if: steps.cache-openssl.outputs.cache-hit != 'true'
         shell: bash
@@ -383,7 +383,7 @@ jobs:
         if: steps.cache-uvw.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          sed -i '1s;^;#define UVW_AS_LIB 1\n;' "${{ github.workspace }}/libraries/uvw/include/uvw.hpp" \
+          sed -i'' '1s;^;#define UVW_AS_LIB 1\n;' "${{ github.workspace }}/libraries/uvw/include/uvw.hpp" \
             && rm -rf uvw
       - name: Checkout yaml-cpp
         if: steps.cache-yaml.outputs.cache-hit != 'true'
