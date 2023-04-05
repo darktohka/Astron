@@ -11,15 +11,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: windows-latest
-            build_type: Release
-            c_standard: "23"
-            cxx_standard: "23"
-            c_flags: ""
-            cxx_flags: "/Zc:__cplusplus /EHsc"
-            exe_linker_flags: "/alternatename:__imp___std_init_once_complete=__imp_InitOnceComplete /alternatename:__imp___std_init_once_begin_initialize=__imp_InitOnceBeginInitialize"
-            openssl_arch: "VC-WIN64A"
-            openssl_options: "/FS"
           - os: ubuntu-22.04
             build_type: Release
             c_standard: "17"
@@ -33,11 +24,11 @@ jobs:
             build_type: Release
             c_standard: "17"
             cxx_standard: "20"
-            c_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fPIE -flto -Wformat -Wformat-security -mcpu=ampere1"
-            cxx_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fPIE -flto -Wformat -Wformat-security -mcpu=ampere1"
+            c_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fPIE -flto -Wformat -Wformat-security"
+            cxx_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fPIE -flto -Wformat -Wformat-security"
             exe_linker_flags: ""
             openssl_arch: "linux-aarch64"
-            openssl_options: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -flto -Wformat -Wformat-security -mcpu=ampere1"
+            openssl_options: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -flto -Wformat -Wformat-security"
     runs-on: ${{ matrix.os }}
     name: Build for ${{ matrix.os }} (${{ matrix.build_type }})
     steps:
@@ -96,7 +87,7 @@ jobs:
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2.8
         with:
-          key: ${{ matrix.os }}-lto-ccache
+          key: ${{ matrix.os }}-lto2-ccache
       - name: Enable Clang
         if: runner.os != 'Windows'
         shell: bash
@@ -113,62 +104,62 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/openssl
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto-openssl-${{ steps.query.outputs.OPENSSL_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-openssl-${{ steps.query.outputs.OPENSSL_COMMIT }}
       - name: Cache zstd
         id: cache-zstd
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/zstd
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto-zstd-${{ steps.query.outputs.ZSTD_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-zstd-${{ steps.query.outputs.ZSTD_COMMIT }}
       - name: Cache mongo-c-driver
         id: cache-mongoc
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/mongoc
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto-mongoc-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.ZSTD_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-mongoc-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.ZSTD_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}
       - name: Cache mongo-cxx-driver
         id: cache-mongocxx
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/mongocxx
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto-mongocxx-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}-${{ steps.query.outputs.MONGOCXX_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-mongocxx-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}-${{ steps.query.outputs.MONGOCXX_COMMIT }}
       - name: Cache libuv
         id: cache-libuv
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/libuv
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto-libuv-${{ steps.query.outputs.LIBUV_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-libuv-${{ steps.query.outputs.LIBUV_COMMIT }}
       - name: Cache uvw
         id: cache-uvw
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/uvw
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto-uvw-${{ steps.query.outputs.LIBUV_COMMIT }}-${{ steps.query.outputs.UVW_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-uvw-${{ steps.query.outputs.LIBUV_COMMIT }}-${{ steps.query.outputs.UVW_COMMIT }}
       - name: Cache yaml-cpp
         id: cache-yaml
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/yaml
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto-yaml-${{ steps.query.outputs.YAML_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-yaml-${{ steps.query.outputs.YAML_COMMIT }}
       - name: Cache SQLite3
         id: cache-sqlite
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/sqlite
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto-sqlite-${{ steps.query.outputs.SQLITE_HASH }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-sqlite-${{ steps.query.outputs.SQLITE_HASH }}
       - name: Cache ODBC
         if: runner.os != 'Windows'
         id: cache-odbc
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/odbc
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto-unixodbc-${{ steps.query.outputs.ODBC_HASH }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-unixodbc-${{ steps.query.outputs.ODBC_HASH }}
       - name: Cache SOCI
         id: cache-soci
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/soci
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto-soci-${{ steps.query.outputs.SQLITE_HASH }}-${{ steps.query.outputs.ODBC_HASH }}-${{ steps.query.outputs.SOCI_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-soci-${{ steps.query.outputs.SQLITE_HASH }}-${{ steps.query.outputs.ODBC_HASH }}-${{ steps.query.outputs.SOCI_COMMIT }}
       - name: Cache Bison and Flex
         if: runner.os == 'Windows'
         id: cache-bison
