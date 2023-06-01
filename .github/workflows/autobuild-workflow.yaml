@@ -38,7 +38,7 @@ jobs:
         run: |
           echo "::set-output name=ZSTD_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/facebook/zstd/commits/dev | jq -r .sha)" && \
           echo "::set-output name=MONGOC_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/mongodb/mongo-c-driver/commits/master | jq -r .sha)" && \
-          echo "::set-output name=MONGOCXX_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/mongodb/mongo-cxx-driver/commits/master | jq -r .sha)" && \
+          echo "::set-output name=MONGOCXX_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/darktohka/mongo-cxx-driver/commits/master | jq -r .sha)" && \
           echo "::set-output name=OPENSSL_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/openssl/openssl/commits/master | jq -r .sha)" && \
           echo "::set-output name=LIBUV_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/libuv/libuv/commits/v1.x | jq -r .sha)" && \
           echo "::set-output name=UVW_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/darktohka/uvw/commits/master | jq -r .sha)" && \
@@ -280,7 +280,7 @@ jobs:
         if: steps.cache-mongocxx.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
         with:
-          repository: "mongodb/mongo-cxx-driver"
+          repository: "darktohka/mongo-cxx-driver"
           ref: "master"
           path: "mongo-cxx-driver"
       - name: Cleanup mongo-cxx-driver
