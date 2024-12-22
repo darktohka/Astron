@@ -128,13 +128,13 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/libuv
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-libuv-${{ steps.query.outputs.LIBUV_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto4-libuv-${{ steps.query.outputs.LIBUV_COMMIT }}-${{ steps.query.outputs.UVW_COMMIT }}
       - name: Cache uvw
         id: cache-uvw
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/uvw
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto3-uvw-${{ steps.query.outputs.LIBUV_COMMIT }}-${{ steps.query.outputs.UVW_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto4-libuv-${{ steps.query.outputs.LIBUV_COMMIT }}-${{ steps.query.outputs.UVW_COMMIT }}
       - name: Cache yaml-cpp
         id: cache-yaml
         uses: actions/cache@v3
@@ -189,7 +189,7 @@ jobs:
         working-directory: libuv
         shell: bash
         run: |
-          cmake --build . --parallel 2 --target install --config ${{ matrix.build_type }}
+          sudo cmake --build . --parallel 2 --target install --config ${{ matrix.build_type }}
       - name: Cleanup libuv
         if: steps.cache-libuv.outputs.cache-hit != 'true'
         shell: bash
