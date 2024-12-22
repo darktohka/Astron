@@ -41,7 +41,7 @@ jobs:
           echo "::set-output name=MONGOCXX_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/mongodb/mongo-cxx-driver/commits/master | jq -r .sha)" && \
           echo "::set-output name=OPENSSL_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/openssl/openssl/commits/master | jq -r .sha)" && \
           echo "::set-output name=LIBUV_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/libuv/libuv/commits/v1.x | jq -r .sha)" && \
-          echo "::set-output name=UVW_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/darktohka/uvw/commits/master | jq -r .sha)" && \
+          echo "::set-output name=UVW_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/skypjack/uvw/commits/main | jq -r .sha)" && \
           echo "::set-output name=YAML_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/jbeder/yaml-cpp/commits/master | jq -r .sha)" && \
           echo "::set-output name=SOCI_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/soci/soci/commits/master | jq -r .sha)" && \
           echo "::set-output name=MONGOC_VERSION::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/mongodb/mongo-c-driver/releases | jq -r first.tag_name)" && \
@@ -134,7 +134,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/libraries/uvw
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-uvw-${{ steps.query.outputs.LIBUV_COMMIT }}-${{ steps.query.outputs.UVW_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto3-uvw-${{ steps.query.outputs.LIBUV_COMMIT }}-${{ steps.query.outputs.UVW_COMMIT }}
       - name: Cache yaml-cpp
         id: cache-yaml
         uses: actions/cache@v3
@@ -199,8 +199,8 @@ jobs:
         if: steps.cache-uvw.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
         with:
-          repository: "darktohka/uvw"
-          ref: "master"
+          repository: "skypjack/uvw"
+          ref: "main"
           path: "uvw"
       - name: Setup uvw
         if: steps.cache-uvw.outputs.cache-hit != 'true'
