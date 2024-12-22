@@ -65,7 +65,7 @@ jobs:
         if: runner.os != 'Windows' && runner.os != 'macOS' && matrix.os != 'arm64'
         uses: egor-tensin/setup-clang@v1
         with:
-          version: 20
+          version: 18
           platform: x64
       - name: Setup Visual Studio
         if: runner.os == 'Windows'
