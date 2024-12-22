@@ -180,6 +180,7 @@ jobs:
         shell: bash
         run: |
           cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
+            -DCMAKE_INSTALL_PREFIX="/usr" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_C_STANDARD=${{ matrix.c_standard }} -DCMAKE_C_FLAGS="${{ matrix.c_flags }}" \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
