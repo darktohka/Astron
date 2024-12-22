@@ -194,8 +194,7 @@ jobs:
         if: steps.cache-libuv.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          cp "${{ github.workspace }}/libraries/libuv/lib/pkgconfig/libuv-static.pc" "${{ github.workspace }}/libraries/libuv/lib/pkgconfig/libuv.pc" \
-            && rm -rf libuv
+          rm -rf libuv
       - name: Checkout uvw
         if: steps.cache-uvw.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
