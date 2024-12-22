@@ -41,7 +41,7 @@ jobs:
           echo "::set-output name=MONGOCXX_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/darktohka/mongo-cxx-driver/commits/master | jq -r .sha)" && \
           echo "::set-output name=OPENSSL_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/openssl/openssl/commits/master | jq -r .sha)" && \
           echo "::set-output name=LIBUV_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/libuv/libuv/commits/v1.x | jq -r .sha)" && \
-          echo "::set-output name=UVW_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/darktohka/uvw/commits/master | jq -r .sha)" && \
+          echo "::set-output name=UVW_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/skypjack/uvw/commits/main | jq -r .sha)" && \
           echo "::set-output name=YAML_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/darktohka/yaml-cpp/commits/patch-1 | jq -r .sha)" && \
           echo "::set-output name=SOCI_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/soci/soci/commits/master | jq -r .sha)" && \
           echo "::set-output name=MONGOC_VERSION::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/mongodb/mongo-c-driver/releases | jq -r first.tag_name)" && \
@@ -346,8 +346,8 @@ jobs:
         if: steps.cache-uvw.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
         with:
-          repository: "darktohka/uvw"
-          ref: "master"
+          repository: "skypjack/uvw"
+          ref: "main"
           path: "uvw"
       - name: Setup uvw
         if: steps.cache-uvw.outputs.cache-hit != 'true'
@@ -358,8 +358,8 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/uvw" \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}" \
-            -DBUILD_UVW_SHARED_LIB=OFF -DBUILD_UVW_LIBS=ON \
-            -DBUILD_TESTING=OFF -DBUILD_DOCS=OFF -DFETCH_LIBUV=OFF -DFIND_LIBUV=ON ..
+            -DUVW_BUILD_SHARED_LIB=OFF -DUVW_BUILD_LIBS=ON \
+            -DUVW_BUILD_TESTING=OFF -DUVW_BUILD_DOCS=OFF -DUVW_FETCH_LIBUV=OFF -DUVW_FIND_LIBUV=ON ..
       - name: Build and install uvw
         if: steps.cache-uvw.outputs.cache-hit != 'true'
         working-directory: uvw/build
