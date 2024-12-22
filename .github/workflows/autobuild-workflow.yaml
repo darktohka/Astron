@@ -42,7 +42,7 @@ jobs:
           echo "::set-output name=OPENSSL_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/openssl/openssl/commits/master | jq -r .sha)" && \
           echo "::set-output name=LIBUV_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/libuv/libuv/commits/v1.x | jq -r .sha)" && \
           echo "::set-output name=UVW_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/skypjack/uvw/commits/main | jq -r .sha)" && \
-          echo "::set-output name=YAML_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/darktohka/yaml-cpp/commits/patch-1 | jq -r .sha)" && \
+          echo "::set-output name=YAML_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/jbeder/yaml-cpp/commits/master | jq -r .sha)" && \
           echo "::set-output name=SOCI_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/soci/soci/commits/master | jq -r .sha)" && \
           echo "::set-output name=MONGOC_VERSION::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/mongodb/mongo-c-driver/releases | jq -r first.tag_name)" && \
           FLEXBISON_REPLY="$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/lexxmark/winflexbison/releases)" && \
@@ -376,8 +376,8 @@ jobs:
         if: steps.cache-yaml.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
         with:
-          repository: "darktohka/yaml-cpp"
-          ref: "patch-1"
+          repository: "jbeder/yaml-cpp"
+          ref: "master"
           path: "yaml"
       - name: Setup yaml-cpp
         if: steps.cache-yaml.outputs.cache-hit != 'true'
