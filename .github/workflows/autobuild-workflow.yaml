@@ -180,7 +180,7 @@ jobs:
         shell: bash
         run: |
           cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
-            -DCMAKE_INSTALL_PREFIX="/usr" \
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/libuv" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_C_STANDARD=${{ matrix.c_standard }} -DCMAKE_C_FLAGS="${{ matrix.c_flags }}" \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
@@ -190,7 +190,7 @@ jobs:
         working-directory: libuv
         shell: bash
         run: |
-          sudo cmake --build . --parallel 2 --target install --config ${{ matrix.build_type }}
+          cmake --build . --parallel 2 --target install --config ${{ matrix.build_type }}
       - name: Cleanup libuv
         if: steps.cache-libuv.outputs.cache-hit != 'true'
         shell: bash
