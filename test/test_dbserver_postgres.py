@@ -23,11 +23,8 @@ roles:
         min: 1000000
         max: 1000010
       backend:
-        type: soci
-        driver: postgresql
-        server: 127.0.0.1:57023
-        username: astron
-        database: astron
+        type: postgresql
+        server: postgresql://astron@127.0.0.1:57023/astron
 """ % (USE_THREADING, test_dc)
 
 class TestDatabaseServerPostgres(ProtocolTest, DBServerTestsuite):
@@ -37,6 +34,7 @@ class TestDatabaseServerPostgres(ProtocolTest, DBServerTestsuite):
         cls.daemon = Daemon(CONFIG)
         cls.daemon.start()
         cls.conn = cls.connectToServer()
+        cls.conn.s.settimeout(1.0) # Allow time for Astron<->PostgreSQL communication.
         cls.objects = cls.connectToServer()
         cls.objects.send(Datagram.create_add_range(DATABASE_PREFIX|1000000,
                                                    DATABASE_PREFIX|1000010))

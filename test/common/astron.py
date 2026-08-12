@@ -1,7 +1,23 @@
-import os, time, socket, struct, tempfile, subprocess, ssl
+import os, sys, time, socket, struct, tempfile, subprocess, ssl
 
 __all__ = ['Daemon', 'Datagram', 'DatagramIterator',
-           'MDConnection', 'ChannelConnection', 'ClientConnection']
+           'MDConnection', 'ChannelConnection', 'ClientConnection',
+           'xrange', 'raw_input']
+
+# python2/python3 compatibility helpers for the legacy test harness:
+# xrange and raw_input only exist in python2.
+xrange = range
+try:
+    raw_input
+except NameError:
+    raw_input = input
+
+
+def _byte(data, i):
+    # Return byte at index i as an integer (works on python2 'str' and
+    # python3 'bytes').
+    c = data[i]
+    return ord(c) if isinstance(c, str) else c
 
 class Daemon(object):
     DAEMON_PATH = './astrond'
@@ -24,7 +40,7 @@ class Daemon(object):
             return # Because the start happened manually.
 
         configHandle, self.config_file = tempfile.mkstemp(prefix = 'astron', suffix = 'cfg.yaml')
-        os.write(configHandle, self.config)
+        os.write(configHandle, self.config.encode('utf-8'))
         os.close(configHandle)
 
         args = [self.DAEMON_PATH]
@@ -286,6 +302,8 @@ class Datagram(object):
 
         def make_adder(v):
             def adder(data):
+                if sys.version_info[0] >= 3 and isinstance(data, str):
+                    data = data.encode('latin-1')
                 self.add_raw(struct.pack(v, data))
             return adder
 
@@ -294,6 +312,8 @@ class Datagram(object):
             setattr(self, 'add_' + k, adder)
 
     def add_raw(self, data):
+        if sys.version_info[0] >= 3 and isinstance(data, str):
+            data = data.encode('latin-1')
         self._data += data
 
     def add_string(self, string):
@@ -315,7 +335,7 @@ class Datagram(object):
         return self._data
 
     def get_payload(self):
-        return self._data[CHANNEL_SIZE_BYTES*ord(self._data[0])+1:]
+        return self._data[CHANNEL_SIZE_BYTES*_byte(self._data, 0)+1:]
 
     def get_msgtype(self):
         return struct.unpack('<H', self.get_payload()[CHANNEL_SIZE_BYTES:CHANNEL_SIZE_BYTES+2])[0]
@@ -323,7 +343,7 @@ class Datagram(object):
     def get_channels(self):
         channels = []
         iterator = DatagramIterator(self, 1)
-        for x in xrange(ord(self._data[0])):
+        for x in xrange(_byte(self._data, 0)):
             channels.append(iterator.read_channel())
         return set(channels)
 
@@ -444,7 +464,7 @@ class DatagramIterator(object):
             raise EOFError('End of Datagram')
 
         unpacked = struct.unpack(f, self._data[self._offset-offset:self._offset])
-        if len(unpacked) is 1:
+        if len(unpacked) == 1:
             return unpacked[0]
         else:
             return unpacked
@@ -462,7 +482,7 @@ class DatagramIterator(object):
         if len(channels) != len(recipients):
             return (False, "Recipients length doesn't match")
 
-        self.seek(CHANNEL_SIZE_BYTES*ord(self._data[0])+1)
+        self.seek(CHANNEL_SIZE_BYTES*_byte(self._data, 0)+1)
         readSender = self.read_channel()
         if sender != readSender:
             return (False, "Sender doesn't match, %d != %d (expected, actual)"
@@ -485,7 +505,10 @@ class DatagramIterator(object):
         if self._offset > len(self._data):
             raise EOFError('End of Datagram')
 
-        return struct.unpack("<%ds" % length, self._data[self._offset-length:self._offset])[0]
+        result = struct.unpack("<%ds" % length, self._data[self._offset-length:self._offset])[0]
+        if sys.version_info[0] >= 3:
+            result = result.decode('latin-1')
+        return result
 
     def read_remainder(self):
         remainder = self._data[self._offset:]
@@ -535,7 +558,7 @@ class MDConnection(object):
     def _read(self):
         try:
             length = DGSIZE_SIZE_BYTES
-            result = ''
+            result = b''
             while len(result) < length:
                 data = self._recv(length - len(result))
                 if not data:
@@ -545,7 +568,7 @@ class MDConnection(object):
         except socket.error:
             return None
 
-        result = ''
+        result = b''
         while len(result) < length:
             data = self._recv(length - len(result))
             if not data:
@@ -596,7 +619,7 @@ class ClientConnection(MDConnection):
         while datagrams:
             dg = self._read()
             if dg is None:
-                if numIn is 0:
+                if numIn == 0:
                     return (False, "No datagram received.")
                 else:
                     return (False, "Only received " + str(numIn) + " datagrams, but expected " + str(numE))

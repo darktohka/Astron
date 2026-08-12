@@ -32,11 +32,8 @@ class TestConfigDBPostgres(ConfigTest):
                     min: 1000000
                     max: 1000010
                   backend:
-                    type: soci
-                    driver: postgresql
-                    server: 127.0.0.1:57023
-                    username: astron
-                    database: astron
+                    type: postgresql
+                    server: postgresql://astron@127.0.0.1:57023/astron
             """ % test_dc
         self.assertEquals(self.checkConfig(config), 'Valid')
 
@@ -54,12 +51,8 @@ class TestConfigDBPostgres(ConfigTest):
                     min: 1000000
                     max: 1000010
                   backend:
-                    type: soci
-                    driver: postgresql
-                    host: 127.0.0.1
-                    port: 57023
-                    username: astron
-                    database: astron
+                    type: postgresql
+                    server: postgresql://astron@127.0.0.1:57023/astron
             """ % test_dc
         self.assertEquals(self.checkConfig(config), 'Invalid')
 
@@ -77,11 +70,8 @@ class TestConfigDBPostgres(ConfigTest):
                     min: 0
                     max: 1000010
                   backend:
-                    type: soci
-                    driver: postgresql
-                    server: 127.0.0.1:57023
-                    username: astron
-                    database: astron
+                    type: postgresql
+                    server: postgresql://astron@127.0.0.1:57023/astron
             """ % test_dc
         self.assertEquals(self.checkConfig(config), 'Invalid')
 
@@ -98,11 +88,8 @@ class TestConfigDBPostgres(ConfigTest):
                     min: 1000000
                     max: 0
                   backend:
-                    type: soci
-                    driver: postgresql
-                    server: 127.0.0.1:57023
-                    username: astron
-                    database: astron
+                    type: postgresql
+                    server: postgresql://astron@127.0.0.1:57023/astron
             """ % test_dc
         self.assertEquals(self.checkConfig(config), 'Invalid')
 
@@ -120,11 +107,8 @@ class TestConfigDBPostgres(ConfigTest):
                     min: 444
                     max: 1000010
                   backend:
-                    type: soci
-                    driver: postgresql
-                    server: 127.0.0.1:57023
-                    username: astron
-                    database: astron
+                    type: postgresql
+                    server: postgresql://astron@127.0.0.1:57023/astron
             """ % test_dc
         self.assertEquals(self.checkConfig(config), 'Invalid')
 
@@ -141,11 +125,8 @@ class TestConfigDBPostgres(ConfigTest):
                     min: 1000000
                     max: 555
                   backend:
-                    type: soci
-                    driver: postgresql
-                    server: 127.0.0.1:57023
-                    username: astron
-                    database: astron
+                    type: postgresql
+                    server: postgresql://astron@127.0.0.1:57023/astron
             """ % test_dc
         self.assertEquals(self.checkConfig(config), 'Invalid')
 
@@ -166,11 +147,8 @@ class TestConfigDBPostgres(ConfigTest):
                     min: 1000000
                     max: 1000010
                   backend:
-                    type: soci
-                    driver: postgresql
-                    server: 127.0.0.1:57023
-                    username: astron
-                    database: astron
+                    type: postgresql
+                    server: postgresql://astron@127.0.0.1:57023/astron
             """ % test_dc
         self.assertEquals(self.checkConfig(config), 'Valid')
 
@@ -190,11 +168,8 @@ class TestConfigDBPostgres(ConfigTest):
                     min: 1000000
                     max: 1000010
                   backend:
-                    type: soci
-                    driver: postgresql
-                    server: 127.0.0.1:57023
-                    username: astron
-                    database: astron
+                    type: postgresql
+                    server: postgresql://astron@127.0.0.1:57023/astron
             """ % test_dc
         self.assertEquals(self.checkConfig(config), 'Valid')
 
@@ -214,11 +189,8 @@ class TestConfigDBPostgres(ConfigTest):
                     min: 1000000
                     max: 1000010
                   backend:
-                    type: soci
-                    driver: postgresql
-                    server: 127.0.0.1:57023
-                    username: astron
-                    database: astron
+                    type: postgresql
+                    server: postgresql://astron@127.0.0.1:57023/astron
             """ % test_dc
         self.assertEquals(self.checkConfig(config), 'Invalid')
 

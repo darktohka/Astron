@@ -1,9 +1,12 @@
 name: Build Astron
 
-on: [push, workflow_dispatch, repository_dispatch]
+on:
+  push:
+  workflow_dispatch:
+  repository_dispatch:
 
 env:
-  CMAKE_PREFIX_PATH: "${{ github.workspace }}/libraries/odbc;${{ github.workspace }}/libraries/sqlite;${{ github.workspace }}/libraries/bison;${{ github.workspace }}/libraries/uvw;${{ github.workspace }}/libraries/boost;${{ github.workspace }}/libraries/openssl;${{ github.workspace }}/libraries/soci;${{ github.workspace }}/libraries/mongoc;${{ github.workspace }}/libraries/mongocxx;${{ github.workspace }}/libraries/libuv;${{ github.workspace }}/libraries/yaml;${{ github.workspace }}/libraries/zstd;${{ github.workspace }}/libraries"
+  CMAKE_PREFIX_PATH: "${{ github.workspace }}/libraries/bison;${{ github.workspace }}/libraries/uvw;${{ github.workspace }}/libraries/boost;${{ github.workspace }}/libraries/libuv;${{ github.workspace }}/libraries/yaml;${{ github.workspace }}/libraries/libpq;${{ github.workspace }}/libraries/libpqxx;${{ github.workspace }}/libraries"
   CURL_OPTIONS: "-fsSL --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40"
 
 jobs:
@@ -11,24 +14,20 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-24.04
+          - os: ubuntu-26.04
             build_type: Release
             c_standard: "17"
             cxx_standard: "20"
             c_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fstack-clash-protection -fPIE -flto -Wformat -Wformat-security"
             cxx_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fstack-clash-protection -fPIE -flto -Wformat -Wformat-security"
             exe_linker_flags: ""
-            openssl_arch: "linux-x86_64"
-            openssl_options: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fstack-clash-protection -flto -Wformat -Wformat-security"
-          - os: arm64
+          - os: ubuntu-26.04-arm
             build_type: Release
             c_standard: "17"
             cxx_standard: "20"
             c_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fPIE -flto -Wformat -Wformat-security"
             cxx_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fPIE -flto -Wformat -Wformat-security"
             exe_linker_flags: ""
-            openssl_arch: "linux-aarch64"
-            openssl_options: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -flto -Wformat -Wformat-security"
     runs-on: ${{ matrix.os }}
     name: Build for ${{ matrix.os }} (${{ matrix.build_type }})
     steps:
@@ -36,33 +35,21 @@ jobs:
         id: query
         shell: bash
         run: |
-          echo "::set-output name=ZSTD_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/facebook/zstd/commits/dev | jq -r .sha)" && \
-          echo "::set-output name=MONGOC_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/mongodb/mongo-c-driver/commits/master | jq -r .sha)" && \
-          echo "::set-output name=MONGOCXX_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/mongodb/mongo-cxx-driver/commits/master | jq -r .sha)" && \
-          echo "::set-output name=OPENSSL_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/openssl/openssl/commits/master | jq -r .sha)" && \
-          echo "::set-output name=LIBUV_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/libuv/libuv/commits/v1.x | jq -r .sha)" && \
-          echo "::set-output name=UVW_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/darktohka/uvw/commits/master | jq -r .sha)" && \
-          echo "::set-output name=YAML_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/jbeder/yaml-cpp/commits/master | jq -r .sha)" && \
-          echo "::set-output name=SOCI_COMMIT::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/soci/soci/commits/master | jq -r .sha)" && \
-          echo "::set-output name=MONGOC_VERSION::$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/mongodb/mongo-c-driver/releases | jq -r first.tag_name)" && \
+          echo "LIBPQ_COMMIT=$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/postgres/postgres/commits/master | jq -r .sha)" >> $GITHUB_OUTPUT && \
+          echo "LIBPQXX_COMMIT=$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/jtv/libpqxx/commits/master | jq -r .sha)" >> $GITHUB_OUTPUT && \
+          echo "LIBUV_COMMIT=$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/libuv/libuv/commits/v1.x | jq -r .sha)" >> $GITHUB_OUTPUT && \
+          echo "UVW_COMMIT=$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/darktohka/uvw/commits/master | jq -r .sha)" >> $GITHUB_OUTPUT && \
+          echo "YAML_COMMIT=$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/jbeder/yaml-cpp/commits/master | jq -r .sha)" >> $GITHUB_OUTPUT && \
           FLEXBISON_REPLY="$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/lexxmark/winflexbison/releases)" && \
-          echo "::set-output name=FLEXBISON_BUILD_ID::$(echo $FLEXBISON_REPLY | jq -r '(first.assets | first).id')" && \
-          echo "::set-output name=FLEXBISON_LINK::$(echo $FLEXBISON_REPLY | jq -r '(first.assets | first).browser_download_url')" && \
-          SQLITE_REPLY="$(curl $CURL_OPTIONS https://sqlite.org/download.html)" && \
-          SQLITE_FILENAME="$(echo "$SQLITE_REPLY" | sed -nE "s/^PRODUCT,.*UTC,(.*),.*,.*$/\1/p")" && \
-          if [[ -z "$SQLITE_FILENAME" ]]; then SQLITE_FILENAME="2023/sqlite-amalgamation-3410200.zip"; fi && \
-          echo "::set-output name=SQLITE_FILENAME::$SQLITE_FILENAME" && \
-          echo "::set-output name=SQLITE_HASH::$(echo "$SQLITE_FILENAME" | openssl sha256 | cut -d ' ' -f 2)" && \
-          ODBC_FILENAME="$(curl -Ss "https://www.unixodbc.org/download.html" | grep "Via HTTP:" | sed -E 's/.+HREF="(.+)".+/\1/')" && \
-          echo "::set-output name=ODBC_FILENAME::$ODBC_FILENAME" && \
-          echo "::set-output name=ODBC_HASH::$(echo "$ODBC_HASH" | openssl sha256 | cut -d ' ' -f 2)"
+          echo "FLEXBISON_BUILD_ID=$(echo $FLEXBISON_REPLY | jq -r '(first.assets | first).id')" >> $GITHUB_OUTPUT && \
+          echo "FLEXBISON_LINK=$(echo $FLEXBISON_REPLY | jq -r '(first.assets | first).browser_download_url')" >> $GITHUB_OUTPUT
       - name: Uninstall previous Clang
         if: matrix.os == 'ubuntu-22.04'
         shell: bash
         run: |
           sudo apt-get purge -y llvm* *clang*
       - name: Set up Clang
-        if: runner.os != 'Windows' && runner.os != 'macOS' && matrix.os != 'arm64'
+        if: runner.os != 'Windows' && runner.os != 'macOS' && matrix.os != 'ubuntu-26.04-arm'
         uses: egor-tensin/setup-clang@v1
         with:
           version: 18
@@ -74,10 +61,10 @@ jobs:
         if: runner.os == 'Windows'
         uses: ashutoshvarma/setup-ninja@master
       - name: Setup Ninja and Autotools on Linux
-        if: runner.os == 'Linux' && matrix.os != 'arm64'
+        if: runner.os == 'Linux'
         shell: bash
         run: |
-          sudo apt-get install -y ninja-build autoconf automake libtool autotools-dev libltdl-dev
+          sudo apt-get install -y ninja-build autoconf automake libtool autotools-dev libltdl-dev bison flex
       - name: Setup Ninja, Bison, Flex on Mac
         if: runner.os == 'macOS'
         shell: bash
@@ -99,30 +86,18 @@ jobs:
         shell: bash
         run: |
           sudo rm -rf /Library/Frameworks/Mono.framework
-      - name: Cache OpenSSL
-        id: cache-openssl
+      - name: Cache libpq
+        id: cache-libpq
         uses: actions/cache@v4
         with:
-          path: ${{ github.workspace }}/libraries/openssl
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-openssl-${{ steps.query.outputs.OPENSSL_COMMIT }}
-      - name: Cache zstd
-        id: cache-zstd
+          path: ${{ github.workspace }}/libraries/libpq
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-libpq-${{ steps.query.outputs.LIBPQ_COMMIT }}
+      - name: Cache libpqxx
+        id: cache-libpqxx
         uses: actions/cache@v4
         with:
-          path: ${{ github.workspace }}/libraries/zstd
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-zstd-${{ steps.query.outputs.ZSTD_COMMIT }}
-      - name: Cache mongo-c-driver
-        id: cache-mongoc
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/libraries/mongoc
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-mongoc-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.ZSTD_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}
-      - name: Cache mongo-cxx-driver
-        id: cache-mongocxx
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/libraries/mongocxx
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-mongocxx-${{ steps.query.outputs.OPENSSL_COMMIT }}-${{ steps.query.outputs.MONGOC_COMMIT }}-${{ steps.query.outputs.MONGOCXX_COMMIT }}
+          path: ${{ github.workspace }}/libraries/libpqxx
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-libpqxx-${{ steps.query.outputs.LIBPQ_COMMIT }}-${{ steps.query.outputs.LIBPQXX_COMMIT }}
       - name: Cache libuv
         id: cache-libuv
         uses: actions/cache@v4
@@ -141,25 +116,6 @@ jobs:
         with:
           path: ${{ github.workspace }}/libraries/yaml
           key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-yaml-${{ steps.query.outputs.YAML_COMMIT }}
-      - name: Cache SQLite3
-        id: cache-sqlite
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/libraries/sqlite
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-sqlite-${{ steps.query.outputs.SQLITE_HASH }}
-      - name: Cache ODBC
-        if: runner.os != 'Windows'
-        id: cache-odbc
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/libraries/odbc
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-unixodbc-${{ steps.query.outputs.ODBC_HASH }}
-      - name: Cache SOCI
-        id: cache-soci
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/libraries/soci
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-soci-${{ steps.query.outputs.SQLITE_HASH }}-${{ steps.query.outputs.ODBC_HASH }}-${{ steps.query.outputs.SOCI_COMMIT }}
       - name: Cache Bison and Flex
         if: runner.os == 'Windows'
         id: cache-bison
@@ -226,151 +182,65 @@ jobs:
         run: |
           sed -i'' '1s;^;#define UVW_AS_LIB 1\n;' "${{ github.workspace }}/libraries/uvw/include/uvw.hpp" \
             && rm -rf uvw
-      - name: Checkout OpenSSL
-        if: steps.cache-openssl.outputs.cache-hit != 'true'
+      - name: Checkout libpq
+        if: steps.cache-libpq.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
-          repository: "openssl/openssl"
+          repository: "postgres/postgres"
           ref: "master"
-          path: "openssl"
-      - name: Download Jom
-        if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os == 'Windows'
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "https://download.qt.io/official_releases/jom/unstable-jom.zip"
-          target: openssl/
-      - name: Unpack Jom
-        if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os == 'Windows'
-        shell: bash
-        working-directory: openssl
-        run: |
-          unzip -qq unstable-jom.zip
-      - name: Configure OpenSSL
-        if: steps.cache-openssl.outputs.cache-hit != 'true'
-        working-directory: openssl
-        run: |
-          perl Configure ${{ matrix.openssl_arch }} no-asm no-shared no-tests no-module no-dso no-legacy --prefix="${{ github.workspace }}/libraries/openssl" --openssldir="${{ github.workspace }}/libraries/openssl" ${{ matrix.openssl_options }}
-      - name: Build and install OpenSSL on Windows
-        if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os == 'Windows'
-        shell: pwsh
-        working-directory: openssl
-        run: >
-          ./jom install_dev
-      - name: Build and install OpenSSL on Linux and Mac
-        if: steps.cache-openssl.outputs.cache-hit != 'true' && runner.os != 'Windows'
-        shell: bash
-        working-directory: openssl
-        run: |
-          sed -E -i'' "s/\"$CC/\"ccache $CC/" configdata.pm && (make || true) && make -j$(nproc) install_dev
-      - name: Cleanup OpenSSL
-        if: steps.cache-openssl.outputs.cache-hit != 'true'
+          path: "postgres"
+      - name: Setup libpq
+        if: steps.cache-libpq.outputs.cache-hit != 'true'
+        working-directory: postgres
         shell: bash
         run: |
-          rm -rf openssl
-      - name: Checkout zstd
-        if: steps.cache-zstd.outputs.cache-hit != 'true'
+          ./configure --without-readline --without-zlib --without-openssl \
+            --prefix="${{ github.workspace }}/libraries/libpq" \
+            CFLAGS="${{ matrix.c_flags }}"
+      - name: Build and install libpq
+        if: steps.cache-libpq.outputs.cache-hit != 'true'
+        working-directory: postgres
+        shell: bash
+        run: |
+          make -C src/interfaces/libpq -j$(nproc) install && \
+          make -C src/bin/pg_config -j$(nproc) install
+      - name: Cleanup libpq
+        if: steps.cache-libpq.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          rm -rf postgres
+      - name: Checkout libpqxx
+        if: steps.cache-libpqxx.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
-          repository: "facebook/zstd"
-          ref: "dev"
-          path: "zstd"
-      - name: Setup zstd
-        if: steps.cache-zstd.outputs.cache-hit != 'true'
-        working-directory: zstd
-        shell: bash
-        run: |
-          cmake -B build-cmake -S build/cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/zstd" \
-            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_C_STANDARD=${{ matrix.c_standard }} \
-            -DCMAKE_C_FLAGS="${{ matrix.c_flags }}" \
-            -DZSTD_LEGACY_SUPPORT=OFF -DZSTD_MULTITHREAD_SUPPORT=ON -DZSTD_BUILD_PROGRAMS=OFF -DZSTD_BUILD_CONTRIB=OFF \
-            -DZSTD_BUILD_TESTS=OFF -DZSTD_BUILD_STATIC=ON -DZSTD_BUILD_SHARED=OFF
-      - name: Build and install zstd
-        if: steps.cache-zstd.outputs.cache-hit != 'true'
-        working-directory: zstd
-        shell: bash
-        run: |
-          cmake --build build-cmake --parallel 2 --target install --config ${{ matrix.build_type }}
-      - name: Cleanup zstd
-        if: steps.cache-zstd.outputs.cache-hit != 'true'
-        shell: bash
-        run: |
-          rm -rf zstd
-      - name: Checkout mongo-c-driver
-        if: steps.cache-mongoc.outputs.cache-hit != 'true'
-        uses: actions/checkout@v4
-        with:
-          repository: "mongodb/mongo-c-driver"
+          repository: "jtv/libpqxx"
           ref: "master"
-          path: "mongo-c-driver"
-      - name: Create mongo-c-driver versions
-        if: steps.cache-mongoc.outputs.cache-hit != 'true'
-        shell: bash
-        run: |
-          echo "${{ steps.query.outputs.MONGOC_VERSION }}" > VERSION_CURRENT && \
-          echo "${{ steps.query.outputs.MONGOC_VERSION }}" > VERSION_RELEASED
-      - name: Setup mongo-c-driver
-        if: steps.cache-mongoc.outputs.cache-hit != 'true'
-        working-directory: mongo-c-driver
+          path: "libpqxx"
+      - name: Setup libpqxx
+        if: steps.cache-libpqxx.outputs.cache-hit != 'true'
+        working-directory: libpqxx
         shell: bash
         run: |
           cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/mongoc" \
-            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_C_STANDARD=${{ matrix.c_standard }} \
-            -DCMAKE_C_FLAGS="${{ matrix.c_flags }}" \
-            -DBUILD_VERSION="${{ steps.query.outputs.MONGOC_VERSION }}" \
-            -DENABLE_STATIC=ON -DENABLE_ZLIB=OFF -DENABLE_ZSTD=ON -DENABLE_SNAPPY=OFF -DENABLE_SASL=OFF \
-            -DENABLE_SSL=OPENSSL -DENABLE_MONGODB_AWS_AUTH=OFF -DENABLE_EXTRA_ALIGNMENT=OFF -DENABLE_TESTS=OFF \
-            -DENABLE_EXAMPLES=OFF -DENABLE_UNINSTALL=OFF -DENABLE_ICU=OFF -DMONGO_USE_CCACHE=ON .
-      - name: Build and install mongo-c-driver
-        if: steps.cache-mongoc.outputs.cache-hit != 'true'
-        working-directory: mongo-c-driver
-        shell: bash
-        run: |
-          cmake --build . --parallel 2 --target install --config ${{ matrix.build_type }}
-      - name: Cleanup mongo-c-driver
-        if: steps.cache-mongoc.outputs.cache-hit != 'true'
-        shell: bash
-        run: |
-          rm -rf mongo-c-driver
-      - name: Checkout mongo-cxx-driver
-        if: steps.cache-mongocxx.outputs.cache-hit != 'true'
-        uses: actions/checkout@v4
-        with:
-          repository: "mongodb/mongo-cxx-driver"
-          ref: "master"
-          path: "mongo-cxx-driver"
-      - name: Cleanup mongo-cxx-driver
-        if: steps.cache-mongocxx.outputs.cache-hit != 'true'
-        shell: bash
-        working-directory: mongo-cxx-driver
-        run: |
-          for dir in benchmark docs examples; do rm -rf $dir; mkdir -p $dir; touch $dir/CMakeLists.txt; done
-      - name: Setup mongo-cxx-driver
-        if: steps.cache-mongocxx.outputs.cache-hit != 'true'
-        working-directory: mongo-cxx-driver
-        shell: bash
-        run: |
-          cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/mongocxx" \
+            -DPostgreSQL_ROOT="${{ github.workspace }}/libraries/libpq" \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/libpqxx" \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}" \
-            -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} -DBUILD_VERSION="${{ steps.query.outputs.MONGOC_VERSION }}" \
-            -DBUILD_SHARED_LIBS=OFF -DENABLE_UNINSTALL=OFF -DENABLE_TESTS=OFF \
+            -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} \
+            -DBUILD_SHARED_LIBS=OFF -DBUILD_DOC=OFF -DBUILD_TOOLS=OFF \
+            -DSKIP_BUILD_TEST=ON -DSKIP_BUILD_EXAMPLES=ON \
             .
-      - name: Build and install mongo-cxx-driver
-        if: steps.cache-mongocxx.outputs.cache-hit != 'true'
-        working-directory: mongo-cxx-driver
+      - name: Build and install libpqxx
+        if: steps.cache-libpqxx.outputs.cache-hit != 'true'
+        working-directory: libpqxx
         shell: bash
         run: |
           cmake --build . --parallel 2 --target install --config ${{ matrix.build_type }}
-      - name: Cleanup mongo-cxx-driver
-        if: steps.cache-mongocxx.outputs.cache-hit != 'true'
+      - name: Cleanup libpqxx
+        if: steps.cache-libpqxx.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          rm -rf mongo-cxx-driver
+          rm -rf libpqxx
       - name: Checkout yaml-cpp
         if: steps.cache-yaml.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
@@ -401,120 +271,6 @@ jobs:
         shell: bash
         run: |
           rm -rf yaml
-      - name: Download SQLite3
-        if: steps.cache-sqlite.outputs.cache-hit != 'true'
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: https://sqlite.org/${{ steps.query.outputs.SQLITE_FILENAME }}
-          target: sqlite/
-      - name: Extract SQLite3
-        if: steps.cache-sqlite.outputs.cache-hit != 'true'
-        shell: bash
-        working-directory: sqlite
-        run: |
-          ((tar -xzf *.tar.gz && rm -f *.tar.gz) || (unzip -qq *.zip && rm -f *.zip)) && mv sqlite-* src
-      - name: Create SQLite3 project
-        if: steps.cache-sqlite.outputs.cache-hit != 'true'
-        shell: bash
-        working-directory: sqlite
-        run: >
-          cat <<EOF > CMakeLists.txt
-            PROJECT(sqlite3)
-            cmake_minimum_required(VERSION 3.10)
-
-            include_directories(${CMAKE_SOURCE_DIR}/src)
-            add_library(sqlite3 STATIC src/sqlite3.c src/sqlite3.h src/sqlite3ext.h)
-
-            add_definitions(-DSQLITE_ENABLE_RTREE)
-            add_definitions(-DSQLITE_ENABLE_FTS4)
-            add_definitions(-DSQLITE_ENABLE_FTS5)
-            add_definitions(-DSQLITE_ENABLE_JSON1)
-            add_definitions(-DSQLITE_ENABLE_RBU)
-            add_definitions(-DSQLITE_ENABLE_STAT4)
-
-            install(FILES src/sqlite3.h src/sqlite3ext.h DESTINATION include)
-            install(TARGETS sqlite3 LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
-          EOF
-      - name: Setup SQLite3
-        if: steps.cache-sqlite.outputs.cache-hit != 'true'
-        working-directory: sqlite
-        shell: bash
-        run: |
-          cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/sqlite" \
-            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_C_STANDARD=${{ matrix.c_standard }} \
-            -DCMAKE_C_FLAGS="${{ matrix.c_flags }}" .
-      - name: Build and install SQLite3
-        if: steps.cache-sqlite.outputs.cache-hit != 'true'
-        working-directory: sqlite
-        shell: bash
-        run: |
-          cmake --build . --parallel 2 --target install --config ${{ matrix.build_type }}
-      - name: Cleanup SQLite3
-        if: steps.cache-sqlite.outputs.cache-hit != 'true'
-        shell: bash
-        run: |
-          rm -rf sqlite
-      - name: Download and extract ODBC
-        if: runner.os != 'Windows' && steps.cache-odbc.outputs.cache-hit != 'true'
-        shell: bash
-        run: |
-          rm -rf odbc && mkdir -p odbc && cd odbc && wget -q "ftp://ftp.unixodbc.org/pub/unixODBC/unixODBC-2.3.12.tar.gz" -O - | tar -xz --strip-components=1
-      - name: Setup ODBC
-        if: runner.os != 'Windows' && steps.cache-odbc.outputs.cache-hit != 'true'
-        working-directory: odbc
-        shell: bash
-        run: |
-          autoreconf -i && ./configure CFLAGS="${{ matrix.c_flags }}" --enable-static --disable-shared \
-            --disable-dependency-tracking --disable-iconv --enable-ltdl-install \
-            --prefix="${{ github.workspace }}/libraries/odbc"
-      - name: Build and install ODBC
-        if: runner.os != 'Windows' && steps.cache-odbc.outputs.cache-hit != 'true'
-        working-directory: odbc
-        shell: bash
-        run: |
-          PATH="/usr/lib/ccache:${PATH}" make -j$(nproc) install
-      - name: Cleanup ODBC
-        if: steps.cache-odbc.outputs.cache-hit != 'true'
-        shell: bash
-        run: |
-          rm -rf odbc
-      - name: Checkout SOCI
-        if: steps.cache-soci.outputs.cache-hit != 'true'
-        uses: actions/checkout@v4
-        with:
-          repository: "SOCI/soci"
-          ref: "master"
-          path: "soci"
-      - name: Setup SOCI
-        if: steps.cache-soci.outputs.cache-hit != 'true'
-        working-directory: soci
-        shell: bash
-        run: |
-          cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/soci" \
-            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}" \
-            -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} -DSOCI_SHARED=OFF -DSOCI_TESTS=OFF \
-            .
-      - name: Build and install SOCI
-        if: steps.cache-soci.outputs.cache-hit != 'true'
-        working-directory: soci
-        shell: bash
-        run: |
-          cmake --build . --parallel 2 --target install --config ${{ matrix.build_type }}
-      - name: Fix SOCI library names
-        if: steps.cache-soci.outputs.cache-hit != 'true'
-        working-directory: ${{ github.workspace }}/libraries/soci/lib
-        shell: bash
-        run: |
-          for file in $(find . -name "*_*_*.*"); do mv "$file" "${file//_[0-9]}"; done
-      - name: Cleanup Soci
-        if: steps.cache-soci.outputs.cache-hit != 'true'
-        shell: bash
-        run: |
-          rm -rf soci
       - name: Download Bison and Flex
         if: steps.cache-bison.outputs.cache-hit != 'true' && runner.os == 'Windows'
         uses: suisei-cn/actions-download-file@v1
@@ -604,6 +360,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}" \
             -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} \
             -DCMAKE_EXE_LINKER_FLAGS="${{ matrix.exe_linker_flags }}" \
+            -DBUILD_DB_POSTGRESQL=ON \
             ..
       - name: Build and install Astron
         working-directory: Astron/build

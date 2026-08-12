@@ -1,6 +1,10 @@
 import unittest, subprocess, tempfile, os, threading
 from socket import socket, AF_INET, SOCK_STREAM, SOL_TCP, TCP_NODELAY
-from astron import *
+from common.astron import *
+
+# python3 removed the deprecated assertEquals alias.
+if not hasattr(unittest.TestCase, 'assertEquals'):
+    unittest.TestCase.assertEquals = unittest.TestCase.assertEqual
 
 class ConfigTest(unittest.TestCase):
     class ConfigRunner(object):

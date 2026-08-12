@@ -1,5 +1,5 @@
-from astron import *
-from dcfile import *
+from common.astron import *
+from common.dcfile import *
 
 CREATE_DOID_OFFSET = 1 + (CHANNEL_SIZE_BYTES * 2) + 2 + 4
 
