@@ -216,7 +216,11 @@ class DatagramIterator
     DatagramPtr read_datagram()
     {
         dgsize_t length = read_size();
-        return Datagram::create(m_dg->get_data() + m_offset, length);
+        // The length is not trusted at this point, verify it
+        check_read_length(length);
+        DatagramPtr dg = Datagram::create(m_dg->get_data() + m_offset, length);
+        m_offset += length;
+        return dg;
     }
 
     // read_data returns the next <length> bytes in the datagram.
