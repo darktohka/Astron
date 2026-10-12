@@ -388,14 +388,14 @@ class Datagram
     void add_string(const std::string &str)
     {
         // Validate the length *before* writing the length tag.
-        check_add_length(str.length());
+        check_add_length(sizeof(dgsize_t) + str.length());
         add_size(str.length());
         memcpy(buf + buf_offset, str.c_str(), str.length());
         buf_offset += str.length();
     }
     void add_string(const char* str, dgsize_t length)
     {
-        check_add_length(length);
+        check_add_length(sizeof(dgsize_t) + length);
         add_size(length);
         memcpy(buf + buf_offset, str, length);
         buf_offset += length;
@@ -406,7 +406,7 @@ class Datagram
     void add_blob(const std::vector<uint8_t> &blob)
     {
         // Validate the length *before* writing the length tag.
-        check_add_length(blob.size());
+        check_add_length(sizeof(dgsize_t) + blob.size());
         add_size(blob.size());
 
         if (blob.size() > 0) {
@@ -417,7 +417,7 @@ class Datagram
     void add_blob(const uint8_t* data, dgsize_t length)
     {
         // Validate the length *before* writing the length tag.
-        check_add_length(length);
+        check_add_length(sizeof(dgsize_t) + length);
         add_size(length);
         memcpy(buf + buf_offset, data, length);
         buf_offset += length;
@@ -425,7 +425,7 @@ class Datagram
     void add_blob(DatagramHandle dg)
     {
         // Validate the length *before* writing the length tag.
-        check_add_length(dg->buf_offset);
+        check_add_length(sizeof(dgsize_t) + dg->buf_offset);
         add_size(dg->buf_offset);
         memcpy(buf + buf_offset, dg->buf, dg->buf_offset);
         buf_offset += dg->buf_offset;
