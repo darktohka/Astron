@@ -27,13 +27,13 @@ struct Formatter {
     size_t offset;
     size_t end;
 
-    Formatter(const vector<uint8_t> &in, ostream &out) :
-        in(&in[0]), out(out), offset(0), end(in.size())
+    Formatter(const vector<uint8_t> &data, ostream &out) :
+        in(data.empty() ? nullptr : data.data()), out(out), offset(0), end(data.size())
     {
     }
 
-    Formatter(const string &in, ostream &out) :
-        in((const uint8_t*)&in[0]), out(out), offset(0), end(in.size())
+    Formatter(const string &data, ostream &out) :
+        in(data.empty() ? nullptr : (const uint8_t*)data.data()), out(out), offset(0), end(data.size())
     {
     }
 
