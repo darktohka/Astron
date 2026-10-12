@@ -10,6 +10,17 @@
 #   LIBPQXX_LIBRARIES       - libraries to link against (may be an imported target)
 #   LIBPQXX_LIBRARY_DIRS    - link directories for libpqxx
 
+# Prefer linking libpq statically so the resulting binaries do not depend on
+# libpq.so at runtime.  FindPostgreSQL honours a pre-set PostgreSQL_LIBRARY,
+# and libpqxx's config package picks that up through find_dependency().
+set(_LIBPQXX_SAVED_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
+set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+find_library(_LIBPQ_STATIC_LIBRARY NAMES pq libpq PATH_SUFFIXES lib lib64)
+set(CMAKE_FIND_LIBRARY_SUFFIXES ${_LIBPQXX_SAVED_LIBRARY_SUFFIXES})
+if(_LIBPQ_STATIC_LIBRARY)
+	set(PostgreSQL_LIBRARY "${_LIBPQ_STATIC_LIBRARY}")
+endif()
+
 if(NOT libpqxx_FOUND)
 	find_package(libpqxx CONFIG QUIET)
 endif()
@@ -22,6 +33,32 @@ if(libpqxx_FOUND)
 	set(LIBPQXX_LIBRARIES libpqxx::pqxx)
 	if(PostgreSQL_FOUND)
 		list(APPEND LIBPQXX_LIBRARIES PostgreSQL::PostgreSQL)
+		# A static libpq.a does not embed the PostgreSQL common/port helper
+		# code, so link those archives (and libm/threads) as well.
+		#
+		# Use the *_shlib archives: libpq.so links these too, and they are the
+		# ones exporting the public pg_char_to_encoding()/pg_encoding_to_char()
+		# symbols.  The non-shlib libpgcommon.a is built with
+		# -DUSE_PRIVATE_ENCODING_FUNCS and only exports the *_private variants.
+		if(_LIBPQ_STATIC_LIBRARY)
+			set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+			find_library(_LIBPGCOMMON_STATIC_LIBRARY
+				NAMES pgcommon_shlib libpgcommon_shlib pgcommon libpgcommon)
+			find_library(_LIBPGPORT_STATIC_LIBRARY
+				NAMES pgport_shlib libpgport_shlib pgport libpgport)
+			set(CMAKE_FIND_LIBRARY_SUFFIXES ${_LIBPQXX_SAVED_LIBRARY_SUFFIXES})
+			if(_LIBPGCOMMON_STATIC_LIBRARY)
+				list(APPEND LIBPQXX_LIBRARIES ${_LIBPGCOMMON_STATIC_LIBRARY})
+			endif()
+			if(_LIBPGPORT_STATIC_LIBRARY)
+				list(APPEND LIBPQXX_LIBRARIES ${_LIBPGPORT_STATIC_LIBRARY})
+			endif()
+			find_package(Threads QUIET)
+			if(TARGET Threads::Threads)
+				list(APPEND LIBPQXX_LIBRARIES Threads::Threads)
+			endif()
+			list(APPEND LIBPQXX_LIBRARIES m)
+		endif()
 	endif()
 	get_target_property(LIBPQXX_INCLUDE_DIRS libpqxx::pqxx INTERFACE_INCLUDE_DIRECTORIES)
 	get_target_property(_LIBPQXX_IMPORTED_LOCATION libpqxx::pqxx IMPORTED_LOCATION)

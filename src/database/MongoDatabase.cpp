@@ -17,8 +17,11 @@
 #include <bsoncxx/types.hpp>
 #include <bsoncxx/types/value.hpp>
 #include <mongocxx/instance.hpp>
-#include <mongocxx/uri.hpp>
+// NOTE: client.hpp must be included before uri.hpp. The mongo-cxx-driver v_noabi
+// compatibility headers introduce an ambiguous `to_v1()` overload when uri.hpp is
+// parsed first, which fails to compile.
 #include <mongocxx/client.hpp>
+#include <mongocxx/uri.hpp>
 #include <mongocxx/exception/operation_exception.hpp>
 #include <mongocxx/exception/logic_error.hpp>
 

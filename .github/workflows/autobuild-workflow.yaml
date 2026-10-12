@@ -6,7 +6,7 @@ on:
   repository_dispatch:
 
 env:
-  CMAKE_PREFIX_PATH: "${{ github.workspace }}/libraries/bison;${{ github.workspace }}/libraries/uvw;${{ github.workspace }}/libraries/boost;${{ github.workspace }}/libraries/libuv;${{ github.workspace }}/libraries/yaml;${{ github.workspace }}/libraries/libpq;${{ github.workspace }}/libraries/libpqxx;${{ github.workspace }}/libraries"
+  CMAKE_PREFIX_PATH: "${{ github.workspace }}/libraries/bison;${{ github.workspace }}/libraries/uvw;${{ github.workspace }}/libraries/boost;${{ github.workspace }}/libraries/libuv;${{ github.workspace }}/libraries/yaml;${{ github.workspace }}/libraries/libpq;${{ github.workspace }}/libraries/libpqxx;${{ github.workspace }}/libraries/mongoc;${{ github.workspace }}/libraries/mongocxx;${{ github.workspace }}/libraries"
   CURL_OPTIONS: "-fsSL --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40"
 
 jobs:
@@ -16,15 +16,15 @@ jobs:
         include:
           - os: ubuntu-26.04
             build_type: Release
-            c_standard: "17"
-            cxx_standard: "20"
+            c_standard: "23"
+            cxx_standard: "23"
             c_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fstack-clash-protection -fPIE -flto -Wformat -Wformat-security"
             cxx_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fstack-clash-protection -fPIE -flto -Wformat -Wformat-security"
             exe_linker_flags: ""
           - os: ubuntu-26.04-arm
             build_type: Release
-            c_standard: "17"
-            cxx_standard: "20"
+            c_standard: "23"
+            cxx_standard: "23"
             c_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fPIE -flto -Wformat -Wformat-security"
             cxx_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fPIE -flto -Wformat -Wformat-security"
             exe_linker_flags: ""
@@ -38,28 +38,47 @@ jobs:
           echo "LIBPQ_COMMIT=$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/postgres/postgres/commits/master | jq -r .sha)" >> $GITHUB_OUTPUT && \
           echo "LIBPQXX_COMMIT=$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/jtv/libpqxx/commits/master | jq -r .sha)" >> $GITHUB_OUTPUT && \
           echo "LIBUV_COMMIT=$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/libuv/libuv/commits/v1.x | jq -r .sha)" >> $GITHUB_OUTPUT && \
-          echo "UVW_COMMIT=$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/darktohka/uvw/commits/master | jq -r .sha)" >> $GITHUB_OUTPUT && \
+          echo "UVW_COMMIT=$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/skypjack/uvw/commits/main | jq -r .sha)" >> $GITHUB_OUTPUT && \
           echo "YAML_COMMIT=$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/jbeder/yaml-cpp/commits/master | jq -r .sha)" >> $GITHUB_OUTPUT && \
+          echo "MONGOC_COMMIT=$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/mongodb/mongo-c-driver/commits/master | jq -r .sha)" >> $GITHUB_OUTPUT && \
+          echo "MONGOCXX_COMMIT=$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/mongodb/mongo-cxx-driver/commits/master | jq -r .sha)" >> $GITHUB_OUTPUT && \
+          echo "MONGOC_VERSION=$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' 'https://api.github.com/repos/mongodb/mongo-c-driver/releases?per_page=20' | jq -r '[.[] | select(.prerelease == false)][0].tag_name')" >> $GITHUB_OUTPUT && \
           FLEXBISON_REPLY="$(curl $CURL_OPTIONS -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/lexxmark/winflexbison/releases)" && \
           echo "FLEXBISON_BUILD_ID=$(echo $FLEXBISON_REPLY | jq -r '(first.assets | first).id')" >> $GITHUB_OUTPUT && \
           echo "FLEXBISON_LINK=$(echo $FLEXBISON_REPLY | jq -r '(first.assets | first).browser_download_url')" >> $GITHUB_OUTPUT
       - name: Uninstall previous Clang
-        if: matrix.os == 'ubuntu-22.04'
+        if: matrix.os == 'ubuntu-26.04' || matrix.os == 'ubuntu-26.04-arm'
         shell: bash
         run: |
           sudo apt-get purge -y llvm* *clang*
+      - name: Register LLVM apt signing key
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          curl -fsSL https://apt.llvm.org/llvm-snapshot.gpg.key \
+            | sudo gpg --batch --yes --dearmor -o /etc/apt/trusted.gpg.d/llvm-snapshot.gpg
+          sudo chmod 0644 /etc/apt/trusted.gpg.d/llvm-snapshot.gpg
       - name: Set up Clang
-        if: runner.os != 'Windows' && runner.os != 'macOS' && matrix.os != 'ubuntu-26.04-arm'
-        uses: egor-tensin/setup-clang@v1
+        if: runner.os != 'Windows' && runner.os != 'macOS'
+        uses: egor-tensin/setup-clang@v2
         with:
-          version: 18
+          version: 23
           platform: x64
+      - name: Register LLVM 23 LTO plugin
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          # setup-clang only switches clang/clang++ to 23.
+          # GNU ar/ld/ranlib keep auto-loading the system LLVM's LTO plugin (LLVMgold.so), which is an older version.
+          sudo apt-get install -y llvm-23-linker-tools
+          sudo find /usr/lib/bfd-plugins -maxdepth 1 -name 'LLVMgold*.so' -delete
+          sudo ln -sf /usr/lib/llvm-23/lib/LLVMgold.so /usr/lib/bfd-plugins/LLVMgold.so
       - name: Setup Visual Studio
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
       - name: Setup Ninja on Windows
         if: runner.os == 'Windows'
-        uses: ashutoshvarma/setup-ninja@master
+        uses: ashutoshvarma/setup-ninja@v1
       - name: Setup Ninja and Autotools on Linux
         if: runner.os == 'Linux'
         shell: bash
@@ -72,7 +91,7 @@ jobs:
           brew install ninja bison flex autoconf automake libtool llvm && \
             for lib in bison flex; do find /usr/local/opt/$lib/bin -maxdepth 1 -type f -exec ln -s {} /usr/local/bin \;; done
       - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1.2.18
+        uses: hendrikmuhs/ccache-action@v1.2.24
         with:
           key: ${{ matrix.os }}-lto2-ccache
       - name: Enable Clang
@@ -88,44 +107,56 @@ jobs:
           sudo rm -rf /Library/Frameworks/Mono.framework
       - name: Cache libpq
         id: cache-libpq
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/libraries/libpq
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-libpq-${{ steps.query.outputs.LIBPQ_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto6-libpq-${{ steps.query.outputs.LIBPQ_COMMIT }}
       - name: Cache libpqxx
         id: cache-libpqxx
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/libraries/libpqxx
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-libpqxx-${{ steps.query.outputs.LIBPQ_COMMIT }}-${{ steps.query.outputs.LIBPQXX_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto6-libpqxx-${{ steps.query.outputs.LIBPQ_COMMIT }}-${{ steps.query.outputs.LIBPQXX_COMMIT }}
+      - name: Cache mongo-c-driver
+        id: cache-mongoc
+        uses: actions/cache@v6
+        with:
+          path: ${{ github.workspace }}/libraries/mongoc
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-mongoc-${{ steps.query.outputs.MONGOC_COMMIT }}-${{ steps.query.outputs.MONGOC_VERSION }}
+      - name: Cache mongo-cxx-driver
+        id: cache-mongocxx
+        uses: actions/cache@v6
+        with:
+          path: ${{ github.workspace }}/libraries/mongocxx
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-mongocxx-${{ steps.query.outputs.MONGOC_COMMIT }}-${{ steps.query.outputs.MONGOCXX_COMMIT }}
       - name: Cache libuv
         id: cache-libuv
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/libraries/libuv
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto4-libuv-${{ steps.query.outputs.LIBUV_COMMIT }}-${{ steps.query.outputs.UVW_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto5-libuv-${{ steps.query.outputs.LIBUV_COMMIT }}-${{ steps.query.outputs.UVW_COMMIT }}
       - name: Cache uvw
         id: cache-uvw
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/libraries/uvw
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto4-libuv-${{ steps.query.outputs.LIBUV_COMMIT }}-${{ steps.query.outputs.UVW_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto4-uvw-${{ steps.query.outputs.LIBUV_COMMIT }}-${{ steps.query.outputs.UVW_COMMIT }}
       - name: Cache yaml-cpp
         id: cache-yaml
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/libraries/yaml
           key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-yaml-${{ steps.query.outputs.YAML_COMMIT }}
       - name: Cache Bison and Flex
         if: runner.os == 'Windows'
         id: cache-bison
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/libraries/bison
           key: ${{ matrix.os }}-${{ matrix.build_type }}-bison-${{ steps.query.outputs.FLEXBISON_BUILD_ID }}
       - name: Checkout libuv
         if: steps.cache-libuv.outputs.cache-hit != 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: "libuv/libuv"
           ref: "v1.x"
@@ -140,13 +171,16 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_C_STANDARD=${{ matrix.c_standard }} -DCMAKE_C_FLAGS="${{ matrix.c_flags }}" \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-            -DLIBUV_BUILD_TESTS=OFF -DLIBUV_BUILD_BENCH=OFF .
+            -DLIBUV_BUILD_TESTS=OFF -DLIBUV_BUILD_BENCH=OFF \
+            -DLIBUV_BUILD_SHARED=OFF -DLIBUV_BUILD_STATIC=ON .
       - name: Build and install libuv
         if: steps.cache-libuv.outputs.cache-hit != 'true'
         working-directory: libuv
         shell: bash
         run: |
           cmake --build . --parallel 2 --target install --config ${{ matrix.build_type }}
+          # Drop any shared library so downstream consumers link libuv statically.
+          rm -f "${{ github.workspace }}/libraries/libuv/lib/"libuv.so*
       - name: Cleanup libuv
         if: steps.cache-libuv.outputs.cache-hit != 'true'
         shell: bash
@@ -154,10 +188,10 @@ jobs:
           rm -rf libuv
       - name: Checkout uvw
         if: steps.cache-uvw.outputs.cache-hit != 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
-          repository: "darktohka/uvw"
-          ref: "master"
+          repository: "skypjack/uvw"
+          ref: "main"
           path: "uvw"
       - name: Setup uvw
         if: steps.cache-uvw.outputs.cache-hit != 'true'
@@ -169,7 +203,7 @@ jobs:
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/uvw" \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}" \
             -DUVW_BUILD_SHARED_LIB=OFF -DUVW_BUILD_LIBS=ON \
-            -DUVW_BUILD_TESTING=OFF -DUVW_BUILD_DOCS=OFF -DUVW_FETCH_LIBUV=OFF -DUVW_FIND_LIBUV=ON ..
+            -DUVW_BUILD_TESTING=OFF -DUVW_BUILD_DOCS=OFF -DUVW_FETCH_LIBUV=ON ..
       - name: Build and install uvw
         if: steps.cache-uvw.outputs.cache-hit != 'true'
         working-directory: uvw/build
@@ -184,7 +218,7 @@ jobs:
             && rm -rf uvw
       - name: Checkout libpq
         if: steps.cache-libpq.outputs.cache-hit != 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: "postgres/postgres"
           ref: "master"
@@ -202,8 +236,23 @@ jobs:
         working-directory: postgres
         shell: bash
         run: |
-          make -C src/interfaces/libpq -j$(nproc) install && \
+          make -C src/interfaces/libpq -j$(nproc) install
+          # Static libpq.a does not embed the common/port helper code that the
+          # shared library links in, so install those archives too; downstream
+          # consumers of libpq.a link against them.
+          make -C src/common -j$(nproc) install
+          make -C src/port -j$(nproc) install
           make -C src/bin/pg_config -j$(nproc) install
+          # libpq-fe.h includes postgres_ext.h, which upstream installs from
+          # src/include rather than src/interfaces/libpq, so install the public
+          # client-side headers here too.
+          install -d "${{ github.workspace }}/libraries/libpq/include/libpq"
+          install -m 644 src/include/postgres_ext.h \
+            "${{ github.workspace }}/libraries/libpq/include/"
+          install -m 644 src/include/libpq/libpq-fs.h \
+            "${{ github.workspace }}/libraries/libpq/include/libpq/"
+          # Drop the shared library so downstream consumers link libpq statically.
+          rm -f "${{ github.workspace }}/libraries/libpq/lib/"libpq.so*
       - name: Cleanup libpq
         if: steps.cache-libpq.outputs.cache-hit != 'true'
         shell: bash
@@ -211,7 +260,7 @@ jobs:
           rm -rf postgres
       - name: Checkout libpqxx
         if: steps.cache-libpqxx.outputs.cache-hit != 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: "jtv/libpqxx"
           ref: "master"
@@ -241,9 +290,81 @@ jobs:
         shell: bash
         run: |
           rm -rf libpqxx
+      - name: Checkout mongo-c-driver
+        if: steps.cache-mongoc.outputs.cache-hit != 'true'
+        uses: actions/checkout@v7
+        with:
+          repository: "mongodb/mongo-c-driver"
+          ref: "master"
+          path: "mongo-c-driver"
+      - name: Setup mongo-c-driver
+        if: steps.cache-mongoc.outputs.cache-hit != 'true'
+        working-directory: mongo-c-driver
+        shell: bash
+        run: |
+          cmake -G"Ninja" -S . -B build-cmake -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/mongoc" \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_C_STANDARD=${{ matrix.c_standard }} \
+            -DCMAKE_C_FLAGS="${{ matrix.c_flags }}" \
+            -DBUILD_VERSION="${{ steps.query.outputs.MONGOC_VERSION }}" \
+            -DENABLE_STATIC=ON -DENABLE_SHARED=OFF \
+            -DENABLE_ZLIB=OFF -DENABLE_ZSTD=OFF -DENABLE_SNAPPY=OFF \
+            -DENABLE_SSL=OFF -DENABLE_SASL=OFF -DENABLE_MONGODB_AWS_AUTH=OFF \
+            -DENABLE_CLIENT_SIDE_ENCRYPTION=OFF \
+            -DENABLE_TESTS=OFF -DENABLE_EXAMPLES=OFF -DENABLE_UNINSTALL=OFF
+      - name: Build and install mongo-c-driver
+        if: steps.cache-mongoc.outputs.cache-hit != 'true'
+        working-directory: mongo-c-driver
+        shell: bash
+        run: |
+          cmake --build build-cmake --parallel 2 --target install --config ${{ matrix.build_type }}
+      - name: Cleanup mongo-c-driver
+        if: steps.cache-mongoc.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          rm -rf mongo-c-driver
+      - name: Checkout mongo-cxx-driver
+        if: steps.cache-mongocxx.outputs.cache-hit != 'true'
+        uses: actions/checkout@v7
+        with:
+          repository: "mongodb/mongo-cxx-driver"
+          ref: "master"
+          path: "mongo-cxx-driver"
+      - name: Prepare mongo-cxx-driver
+        if: steps.cache-mongocxx.outputs.cache-hit != 'true'
+        working-directory: mongo-cxx-driver
+        shell: bash
+        run: |
+          # These directories are configured unconditionally but are not needed,
+          # and pulling in their extra dependencies would slow the build down.
+          for dir in benchmark docs examples; do rm -rf $dir; mkdir -p $dir; touch $dir/CMakeLists.txt; done
+      - name: Setup mongo-cxx-driver
+        if: steps.cache-mongocxx.outputs.cache-hit != 'true'
+        working-directory: mongo-cxx-driver
+        shell: bash
+        run: |
+          cmake -G"Ninja" -S . -B build-cmake -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/mongocxx" \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}" \
+            -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} \
+            -DBUILD_VERSION="${{ steps.query.outputs.MONGOC_VERSION }}" \
+            -DBUILD_SHARED_LIBS=OFF -DENABLE_UNINSTALL=OFF -DENABLE_TESTS=OFF
+      - name: Build and install mongo-cxx-driver
+        if: steps.cache-mongocxx.outputs.cache-hit != 'true'
+        working-directory: mongo-cxx-driver
+        shell: bash
+        run: |
+          cmake --build build-cmake --parallel 2 --target install --config ${{ matrix.build_type }}
+      - name: Cleanup mongo-cxx-driver
+        if: steps.cache-mongocxx.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          rm -rf mongo-cxx-driver
       - name: Checkout yaml-cpp
         if: steps.cache-yaml.outputs.cache-hit != 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: "jbeder/yaml-cpp"
           ref: "master"
@@ -273,7 +394,7 @@ jobs:
           rm -rf yaml
       - name: Download Bison and Flex
         if: steps.cache-bison.outputs.cache-hit != 'true' && runner.os == 'Windows'
-        uses: suisei-cn/actions-download-file@v1
+        uses: suisei-cn/actions-download-file@v1.6.1
         with:
           url: ${{ steps.query.outputs.FLEXBISON_LINK }}
           target: ${{ github.workspace }}/libraries/bison
@@ -285,7 +406,7 @@ jobs:
           unzip -qq *.zip && rm -f *.zip
       - name: Cache Boost
         id: cache-boost
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/libraries/boost
           key: boost
@@ -297,26 +418,26 @@ jobs:
           mkdir -p boost/boost/built libraries/boost/include libraries/boost/cmake
       - name: Install Boost on Windows
         if: steps.cache-boost.outputs.cache-hit != 'true' && runner.os == 'Windows'
-        uses: MarkusJx/install-boost@v2.4.1
+        uses: MarkusJx/install-boost@v2.6.0
         with:
-          boost_version: "1.81.0"
+          boost_version: "1.92.0"
           boost_install_dir: "${{ github.workspace }}"
           platform_version: 2022
           toolset: msvc
       - name: Install Boost on Linux
         if: steps.cache-boost.outputs.cache-hit != 'true' && runner.os == 'Linux'
-        uses: MarkusJx/install-boost@v2.4.1
+        uses: MarkusJx/install-boost@v2.6.0
         with:
-          boost_version: "1.81.0"
+          boost_version: "1.92.0"
           boost_install_dir: "${{ github.workspace }}"
-          platform_version: "20.04"
+          platform_version: "24.04"
       - name: Install Boost on Mac
         if: steps.cache-boost.outputs.cache-hit != 'true' && runner.os == 'macOS'
-        uses: MarkusJx/install-boost@v2.4.1
+        uses: MarkusJx/install-boost@v2.6.0
         with:
-          boost_version: "1.81.0"
+          boost_version: "1.92.0"
           boost_install_dir: "${{ github.workspace }}"
-          platform_version: "11"
+          platform_version: "15"
       - name: Fix Boost folder
         if: steps.cache-boost.outputs.cache-hit != 'true'
         shell: bash
@@ -347,7 +468,7 @@ jobs:
         run: |
           rm -rf boost
       - name: Checkout Astron
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: "Astron"
       - name: Setup Astron
@@ -369,13 +490,13 @@ jobs:
           cmake --build . --parallel 2 --target install --config ${{ matrix.build_type }}
       - name: Upload Astron on Windows
         if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.os }}-astron
           path: ${{ github.workspace }}/build/astron/bin/astrond.exe
       - name: Upload unstripped Astron on Linux and Mac
         if: runner.os != 'Windows' && matrix.build_type == 'Release'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.os }}-astron-debug
           path: ${{ github.workspace }}/build/astron/bin/astrond
@@ -387,7 +508,7 @@ jobs:
           strip astrond
       - name: Upload Astron on Linux and Mac
         if: runner.os != 'Windows'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.os }}-${{ matrix.build_type }}-astron
           path: ${{ github.workspace }}/build/astron/bin/astrond
@@ -398,7 +519,7 @@ jobs:
           tar -acf astron-libraries.tar.zst libraries
       - name: Upload libraries
         if: matrix.build_type == 'Release'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.os }}-${{ matrix.build_type }}-libraries
           path: astron-libraries.tar.zst

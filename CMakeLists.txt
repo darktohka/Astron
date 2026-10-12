@@ -1,5 +1,7 @@
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
-set(CMAKE_CXX_STANDARD 20)
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+if(NOT CMAKE_CXX_STANDARD)
+	set(CMAKE_CXX_STANDARD 23)
+endif()
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 project(Astron)
 
@@ -188,12 +190,32 @@ if(BUILD_DBSERVER)
 	endif()
 
 	### Check for the presence of the MongoDB client library ###
+	# Newer mongo-cxx-driver releases install CMake packages (mongocxx/bsoncxx)
+	# that export imported targets, while older releases only provide the
+	# libmongocxx variables. Support both, preferring static libraries.
+	find_package(mongocxx QUIET)
+	find_package(bsoncxx QUIET)
 	find_package(libmongocxx QUIET)
 	find_package(libbsoncxx QUIET)
 	find_package(libmongocxx-static QUIET)
 	find_package(libbsoncxx-static QUIET)
 
-	if(LIBMONGOCXX_LIBRARIES OR LIBMONGOCXX_STATIC_LIBRARIES)
+	set(BUILD_DB_MONGO_LIBRARIES)
+	if(TARGET mongo::mongocxx_static)
+		list(APPEND BUILD_DB_MONGO_LIBRARIES mongo::mongocxx_static mongo::bsoncxx_static)
+	elseif(TARGET mongo::mongocxx_shared)
+		list(APPEND BUILD_DB_MONGO_LIBRARIES mongo::mongocxx_shared mongo::bsoncxx_shared)
+	elseif(LIBMONGOCXX_STATIC_LIBRARIES)
+		include_directories(${LIBMONGOCXX_STATIC_INCLUDE_DIRS} ${LIBBSONCXX_STATIC_INCLUDE_DIRS})
+		link_directories(${LIBMONGOCXX_STATIC_LIBRARY_DIRS} ${LIBBSONCXX_STATIC_LIBRARY_DIRS})
+		list(APPEND BUILD_DB_MONGO_LIBRARIES ${LIBMONGOCXX_STATIC_LIBRARIES} ${LIBBSONCXX_STATIC_LIBRARIES})
+	elseif(LIBMONGOCXX_LIBRARIES)
+		include_directories(${LIBMONGOCXX_INCLUDE_DIRS} ${LIBBSONCXX_INCLUDE_DIRS})
+		link_directories(${LIBMONGOCXX_LIBRARY_DIRS} ${LIBBSONCXX_LIBRARY_DIRS})
+		list(APPEND BUILD_DB_MONGO_LIBRARIES ${LIBMONGOCXX_LIBRARIES} ${LIBBSONCXX_LIBRARIES})
+	endif()
+
+	if(BUILD_DB_MONGO_LIBRARIES)
 		set(BUILD_DB_MONGO ON CACHE BOOL "If on, will support MongoDB.")
 		message(STATUS "MongoDB client library found")
 	else()
@@ -203,17 +225,7 @@ if(BUILD_DBSERVER)
 	if(BUILD_DB_MONGO)
 		list(APPEND DBSERVER_FILES
 			src/database/MongoDatabase.cpp)
-		if(LIBMONGOCXX_STATIC_LIBRARIES)
-			include_directories(${LIBMONGOCXX_STATIC_INCLUDE_DIRS} ${LIBBSONCXX_STATIC_INCLUDE_DIRS})
-			link_directories(${LIBMONGOCXX_STATIC_LIBRARY_DIRS} ${LIBBSONCXX_STATIC_LIBRARY_DIRS})
-			list(APPEND DB_LIBRARY_NAMES ${LIBMONGOCXX_STATIC_LIBRARIES} ${LIBBSONCXX_STATIC_LIBRARIES})
-		elseif(LIBMONGOCXX_LIBRARIES)
-			include_directories(${LIBMONGOCXX_INCLUDE_DIRS} ${LIBBSONCXX_INCLUDE_DIRS})
-			link_directories(${LIBMONGOCXX_LIBRARY_DIRS} ${LIBBSONCXX_LIBRARY_DIRS})
-			list(APPEND DB_LIBRARY_NAMES ${LIBMONGOCXX_LIBRARIES} ${LIBBSONCXX_LIBRARIES})
-		else()
-			message(FATAL_ERROR "BUILD_DB_MONGO is set but no libraries were found, this is never supposed to happen!")
-		endif()
+		list(APPEND DB_LIBRARY_NAMES ${BUILD_DB_MONGO_LIBRARIES})
 		add_test(db_mongo "${PYTHON2_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/test_dbserver_mongodb.py")
 		add_test(validate_config_dbmongo "${PYTHON2_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/test_config_dbmongo.py")
 		# TODO: Config validation test
@@ -429,8 +441,12 @@ if(BUILD_CLIENTAGENT)
 		src/clientagent/AstronClient.cpp
 	)
 	add_test(clientagent "${PYTHON2_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/test_clientagent.py")
+	add_test(clientagent_version_overflow "${PYTHON2_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/test_version_overflow.py")
+	add_test(clientagent_pending_object "${PYTHON2_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/test_clientagent_pending_object.py")
+	add_test(clientagent_timeout_lifetime "${PYTHON2_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/test_clientagent_timeout_lifetime.py")
+	add_test(clientagent_eject_overflow "${PYTHON2_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/test_clientagent_eject_overflow.py")
 	add_test(validate_config_clientagent "${PYTHON2_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/test_config_clientagent.py")
-	set(PYTHON_TESTS ${PYTHON_TESTS} clientagent validate_config_clientagent)
+	set(PYTHON_TESTS ${PYTHON_TESTS} clientagent clientagent_version_overflow clientagent_pending_object clientagent_timeout_lifetime clientagent_eject_overflow validate_config_clientagent)
 endif()
 
 ### Define core components ###
@@ -478,6 +494,7 @@ set(UTIL_FILES
 	src/util/Timeout.h
 	src/util/TaskQueue.cpp
 	src/util/TaskQueue.h
+	src/util/LifetimeGuard.h
 )
 
 set(NET_FILES
@@ -498,7 +515,8 @@ set(NET_FILES
 include_directories(src)
 add_test(validate_config_core "${PYTHON2_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/test_config.py")
 add_test(messagedirector "${PYTHON2_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/test_messagedirector.py")
-set(PYTHON_TESTS ${PYTHON_TESTS} messagedirector)
+add_test(messagedirector_read_datagram "${PYTHON2_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/test_read_datagram_overflow.py")
+set(PYTHON_TESTS ${PYTHON_TESTS} messagedirector messagedirector_read_datagram)
 add_executable(astrond
 	${CORE_FILES}
 	${CONFIG_FILES}
@@ -549,7 +567,9 @@ endif()
 add_subdirectory(src/dclass)
 
 add_dependencies(astrond dclass)
-target_link_libraries(astrond dclass ${YAML_CPP_LIBRARIES} ${DB_LIBRARY_NAMES} ${LIBUV_LIBRARY} ${UVW_LIBRARY} ${EXTRA_LIBS})
+# Note: uvw is listed before libuv because libuvw.a references libuv symbols,
+# and static libraries must appear in reverse dependency order on the link line.
+target_link_libraries(astrond dclass ${YAML_CPP_LIBRARIES} ${DB_LIBRARY_NAMES} ${UVW_LIBRARY} ${LIBUV_LIBRARY} ${EXTRA_LIBS})
 install(TARGETS astrond DESTINATION bin)
 
 ### Handle some final testing configuration ###
