@@ -95,7 +95,12 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DASTRON_DEBUG_MESSAGES")
 
 ### OS Specific Settings ###
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")	### Windows requires winsock
-	list(APPEND EXTRA_LIBS wsock32 ws2_32 iphlpapi userenv)
+	# secur32 is needed by the statically linked libpq (SSPI).
+	# libuv pulls in psapi/dbghelp/synchronization itself, but Findlibuv.cmake
+	# only resolves the archive path and drops those interface dependencies,
+	# so list them explicitly here (used by the static libuv.a).
+	list(APPEND EXTRA_LIBS wsock32 ws2_32 iphlpapi userenv secur32
+		psapi dbghelp synchronization)
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")		### Linux requires pthreads

@@ -28,6 +28,20 @@ jobs:
             c_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fPIE -flto -Wformat -Wformat-security"
             cxx_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fPIE -flto -Wformat -Wformat-security"
             exe_linker_flags: ""
+          - os: windows-2025
+            build_type: Release
+            c_standard: "23"
+            cxx_standard: "23"
+            c_flags: ""
+            cxx_flags: "/Zc:__cplusplus /EHsc"
+            exe_linker_flags: "/alternatename:__imp___std_init_once_complete=__imp_InitOnceComplete /alternatename:__imp___std_init_once_begin_initialize=__imp_InitOnceBeginInitialize"
+          - os: xcode-27
+            build_type: Release
+            c_standard: "23"
+            cxx_standard: "23"
+            c_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fPIE -Wformat -Wformat-security"
+            cxx_flags: "-D_FORTIFY_SOURCE=2 -O3 -fstack-protector-strong -fPIE -Wformat -Wformat-security"
+            exe_linker_flags: ""
     runs-on: ${{ matrix.os }}
     name: Build for ${{ matrix.os }} (${{ matrix.build_type }})
     steps:
@@ -76,9 +90,22 @@ jobs:
       - name: Setup Visual Studio
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
-      - name: Setup Ninja on Windows
+      - name: Remove Git link.exe from PATH
         if: runner.os == 'Windows'
-        uses: ashutoshvarma/setup-ninja@v1
+        shell: bash
+        run: |
+          # Git for Windows ships a coreutils link.exe in usr/bin that shadows
+          # MSVC's linker and breaks Meson's toolchain detection.
+          rm -f "/c/Program Files/Git/usr/bin/link.exe"
+      - name: Force LF line endings in checkouts
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          # Git for Windows defaults to core.autocrlf=true, which checks sources
+          # out with CRLF.  PostgreSQL's Perl generators rely on LF-only lines
+          # (their regexes are anchored with $), so force LF-mode checkouts.
+          git config --global core.autocrlf false
+          git config --global core.eol lf
       - name: Setup Ninja and Autotools on Linux
         if: runner.os == 'Linux'
         shell: bash
@@ -88,8 +115,11 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          brew install ninja bison flex autoconf automake libtool llvm && \
-            for lib in bison flex; do find /usr/local/opt/$lib/bin -maxdepth 1 -type f -exec ln -s {} /usr/local/bin \;; done
+          brew install ninja bison flex autoconf automake libtool llvm
+          # Homebrew lives in /opt/homebrew on Apple Silicon and /usr/local on
+          # Intel, so resolve the prefix instead of hardcoding it.
+          echo "$(brew --prefix bison)/bin" >> $GITHUB_PATH
+          echo "$(brew --prefix flex)/bin" >> $GITHUB_PATH
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2.24
         with:
@@ -146,7 +176,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/libraries/yaml
-          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto2-yaml-${{ steps.query.outputs.YAML_COMMIT }}
+          key: ${{ matrix.os }}-${{ matrix.build_type }}-lto3-yaml-${{ steps.query.outputs.YAML_COMMIT }}
       - name: Cache Bison and Flex
         if: runner.os == 'Windows'
         id: cache-bison
@@ -154,6 +184,18 @@ jobs:
         with:
           path: ${{ github.workspace }}/libraries/bison
           key: ${{ matrix.os }}-${{ matrix.build_type }}-bison-${{ steps.query.outputs.FLEXBISON_BUILD_ID }}
+      - name: Download Bison and Flex
+        if: steps.cache-bison.outputs.cache-hit != 'true' && runner.os == 'Windows'
+        uses: suisei-cn/actions-download-file@v1.6.1
+        with:
+          url: ${{ steps.query.outputs.FLEXBISON_LINK }}
+          target: ${{ github.workspace }}/libraries/bison
+      - name: Unzip Bison and Flex
+        if: steps.cache-bison.outputs.cache-hit != 'true' && runner.os == 'Windows'
+        shell: bash
+        working-directory: ${{ github.workspace }}/libraries/bison
+        run: |
+          unzip -qq *.zip && rm -f *.zip
       - name: Checkout libuv
         if: steps.cache-libuv.outputs.cache-hit != 'true'
         uses: actions/checkout@v7
@@ -214,8 +256,13 @@ jobs:
         if: steps.cache-uvw.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          sed -i'' '1s;^;#define UVW_AS_LIB 1\n;' "${{ github.workspace }}/libraries/uvw/include/uvw.hpp" \
-            && rm -rf uvw
+          UVW_HPP="${{ github.workspace }}/libraries/uvw/include/uvw.hpp"
+          {
+            printf '#define UVW_AS_LIB 1\n'
+            cat "$UVW_HPP"
+          } > "$UVW_HPP.new"
+          mv "$UVW_HPP.new" "$UVW_HPP"
+          rm -rf uvw
       - name: Checkout libpq
         if: steps.cache-libpq.outputs.cache-hit != 'true'
         uses: actions/checkout@v7
@@ -224,25 +271,54 @@ jobs:
           ref: "master"
           path: "postgres"
       - name: Setup libpq
-        if: steps.cache-libpq.outputs.cache-hit != 'true'
+        if: steps.cache-libpq.outputs.cache-hit != 'true' && runner.os != 'Windows'
         working-directory: postgres
         shell: bash
         run: |
           ./configure --without-readline --without-zlib --without-openssl \
+            --without-icu \
             --prefix="${{ github.workspace }}/libraries/libpq" \
             CFLAGS="${{ matrix.c_flags }}"
-      - name: Build and install libpq
-        if: steps.cache-libpq.outputs.cache-hit != 'true'
+      - name: Setup libpq on Windows
+        if: steps.cache-libpq.outputs.cache-hit != 'true' && runner.os == 'Windows'
         working-directory: postgres
         shell: bash
         run: |
-          make -C src/interfaces/libpq -j$(nproc) install
+          # PostgreSQL cannot be configured with autotools on Windows; Meson is
+          # the supported way to build it with Visual Studio.  Disabling every
+          # automatic feature drops the optional dependencies (readline, zlib,
+          # ...) that are not available on the runner; ICU (a default-on option
+          # in the autotools build) is disabled explicitly like on Unix.
+          python -m pip install meson
+          # Git for Windows ships an MSYS perl whose runtime rewrites
+          # POSIX-looking arguments (e.g. the "/nologo" that msvc_gendef.pl
+          # passes to dumpbin) into "C:\Program Files\Git\...", which breaks the
+          # build.  Use the native Strawberry Perl that ships on the runner.
+          PERL_EXE="C:/Strawberry/perl/bin/perl.exe"
+          if [ ! -x "$PERL_EXE" ]; then
+            echo "::warning::Strawberry Perl not found at $PERL_EXE; using PATH perl"
+            PERL_EXE="perl"
+          fi
+          echo "Using perl: $PERL_EXE"
+          export PATH="${{ github.workspace }}/libraries/bison:$PATH"
+          meson setup build --prefix="${{ github.workspace }}/libraries/libpq" \
+            --buildtype=release --auto-features=disabled \
+            -Dssl=none -Duuid=none -Dicu=disabled -DPERL="$PERL_EXE"
+      - name: Build and install libpq
+        if: steps.cache-libpq.outputs.cache-hit != 'true' && runner.os != 'Windows'
+        working-directory: postgres
+        shell: bash
+        run: |
+          # nproc is coreutils-only (absent on macOS); getconf is POSIX and
+          # works on both Linux and macOS.
+          JOBS="$(getconf _NPROCESSORS_ONLN 2>/dev/null || sysctl -n hw.ncpu)"
+          make -C src/interfaces/libpq -j"$JOBS" install
           # Static libpq.a does not embed the common/port helper code that the
           # shared library links in, so install those archives too; downstream
           # consumers of libpq.a link against them.
-          make -C src/common -j$(nproc) install
-          make -C src/port -j$(nproc) install
-          make -C src/bin/pg_config -j$(nproc) install
+          make -C src/common -j"$JOBS" install
+          make -C src/port -j"$JOBS" install
+          make -C src/bin/pg_config -j"$JOBS" install
           # libpq-fe.h includes postgres_ext.h, which upstream installs from
           # src/include rather than src/interfaces/libpq, so install the public
           # client-side headers here too.
@@ -252,7 +328,28 @@ jobs:
           install -m 644 src/include/libpq/libpq-fs.h \
             "${{ github.workspace }}/libraries/libpq/include/libpq/"
           # Drop the shared library so downstream consumers link libpq statically.
-          rm -f "${{ github.workspace }}/libraries/libpq/lib/"libpq.so*
+          rm -f "${{ github.workspace }}/libraries/libpq/lib/"libpq.so* \
+            "${{ github.workspace }}/libraries/libpq/lib/"libpq*.dylib
+      - name: Build and install libpq on Windows
+        if: steps.cache-libpq.outputs.cache-hit != 'true' && runner.os == 'Windows'
+        working-directory: postgres
+        shell: bash
+        run: |
+          export PATH="${{ github.workspace }}/libraries/bison:$PATH"
+          # winflexbison's newest release (2.5.25) has a race in the m4 pass it
+          # runs internally: every concurrent flex/bison process picks the same
+          # temporary file name for the m4 input (upstream issue #100; the fix
+          # exists only in unreleased master), so one process truncates another's
+          # input and it dies with "end of file in string".  Retry serially,
+          # where no two invocations can overlap, to regenerate whatever the
+          # parallel pass lost to the race.
+          meson compile -C build || meson compile -C build --jobs 1
+          meson install -C build
+          # Drop the shared library and its import library so downstream
+          # consumers link the static libpq (Meson names MSVC static libraries
+          # libpq.a, which lives alongside the import library in lib/).
+          rm -f "${{ github.workspace }}/libraries/libpq/bin/"libpq.dll \
+            "${{ github.workspace }}/libraries/libpq/lib/"libpq.lib
       - name: Cleanup libpq
         if: steps.cache-libpq.outputs.cache-hit != 'true'
         shell: bash
@@ -272,6 +369,7 @@ jobs:
         run: |
           cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
             -DPostgreSQL_ROOT="${{ github.workspace }}/libraries/libpq" \
+            -DPostgreSQL_LIBRARY="${{ github.workspace }}/libraries/libpq/lib/libpq.a" \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/libpqxx" \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}" \
@@ -374,12 +472,15 @@ jobs:
         working-directory: yaml
         shell: bash
         run: |
+          # yaml-cpp defaults to the static CRT (/MT) for static builds; force
+          # the shared CRT (/MD) so it matches astrond and the other deps.
           cmake -G"Ninja" -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/libraries/yaml" \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}" \
             -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} -DYAML_CPP_BUILD_CONTRIB=OFF -DYAML_CPP_BUILD_TOOLS=OFF -DYAML_BUILD_SHARED_LIBS=OFF \
             -DYAML_CPP_FORMAT_SOURCE=OFF -DYAML_CPP_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=OFF \
+            -DYAML_MSVC_SHARED_RT=ON \
             .
       - name: Build and install yaml-cpp
         if: steps.cache-yaml.outputs.cache-hit != 'true'
@@ -392,24 +493,12 @@ jobs:
         shell: bash
         run: |
           rm -rf yaml
-      - name: Download Bison and Flex
-        if: steps.cache-bison.outputs.cache-hit != 'true' && runner.os == 'Windows'
-        uses: suisei-cn/actions-download-file@v1.6.1
-        with:
-          url: ${{ steps.query.outputs.FLEXBISON_LINK }}
-          target: ${{ github.workspace }}/libraries/bison
-      - name: Unzip Bison and Flex
-        if: steps.cache-bison.outputs.cache-hit != 'true' && runner.os == 'Windows'
-        shell: bash
-        working-directory: ${{ github.workspace }}/libraries/bison
-        run: |
-          unzip -qq *.zip && rm -f *.zip
       - name: Cache Boost
         id: cache-boost
         uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/libraries/boost
-          key: boost
+          key: boost-${{ matrix.os }}
       - name: Create Boost folder
         if: steps.cache-boost.outputs.cache-hit != 'true'
         shell: bash
@@ -438,18 +527,36 @@ jobs:
           boost_version: "1.92.0"
           boost_install_dir: "${{ github.workspace }}"
           platform_version: "15"
+          arch: "aarch64"
       - name: Fix Boost folder
         if: steps.cache-boost.outputs.cache-hit != 'true'
         shell: bash
         working-directory: boost/boost
         run: |
-          rm -rf boost && cp -r include/boost .
+          rm -rf boost
+          # The Unix/macOS prebuilt tarballs install the headers directly into
+          # include/boost (header root == include/boost). The Windows tarballs
+          # nest them one level deeper (header root == include/boost/boost) and
+          # also drop a stray include/boost/predef. Detect the real header root
+          # by looking for the icl module, otherwise bcp cannot find it.
+          hdr="include/boost"
+          if [ -d "$hdr/boost/icl" ]; then
+            hdr="$hdr/boost"
+          fi
+          cp -r "$hdr" .
       - name: Build Boost on Windows
         if: steps.cache-boost.outputs.cache-hit != 'true' && runner.os == 'Windows'
         shell: pwsh
         working-directory: boost/boost
-        run: >
-          ./bootstrap.bat; ./b2 tools/bcp; ./dist/bin/bcp icl optional tuple fusion date_time built
+        run: |
+          ./bootstrap.bat
+          ./b2 tools/bcp
+          ./dist/bin/bcp icl optional tuple fusion date_time built
+          # pwsh does not fail on a non-zero native exit code, so bcp failing to
+          # copy a module would otherwise be silently ignored.
+          if (-not (Test-Path built/boost/icl/interval_map.hpp)) {
+            throw "bcp did not copy boost/icl/interval_map.hpp"
+          }
       - name: Build Boost on Linux and Mac
         if: steps.cache-boost.outputs.cache-hit != 'true' && runner.os != 'Windows'
         shell: bash
