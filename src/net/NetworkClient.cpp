@@ -272,14 +272,18 @@ void NetworkClient::handle_disconnect(uv_errno_t ec, std::unique_lock<std::mutex
 
     shutdown(lock);
 
+    NetworkHandler *handler = m_handler;
+
     // Do NOT hold the lock when calling this. Our handler may acquire a
     // lock of its own, and the network lock should always be the lowest in the
     // lock hierarchy.
     lock.unlock();
-    if(m_local_disconnect) {
-        m_handler->receive_disconnect(uvw::error_event{(int)m_disconnect_error});
-    } else {
-        m_handler->receive_disconnect(uvw::error_event{(int)ec});
+    if(handler != nullptr) {
+        if(m_local_disconnect) {
+            handler->receive_disconnect(uvw::error_event{(int)m_disconnect_error});
+        } else {
+            handler->receive_disconnect(uvw::error_event{(int)ec});
+        }
     }
 
     lock.lock();

@@ -90,6 +90,13 @@ public:
         handle_disconnect(ec, lock);
     }
 
+    // detach_handler stops the NetworkClient from invoking its NetworkHandler.
+    inline void detach_handler()
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        m_handler = nullptr;
+    }
+
     // is_connected returns true if the TCP connection is active, or false otherwise
     inline bool is_connected()
     {

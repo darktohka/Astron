@@ -12,6 +12,7 @@ MDNetworkParticipant::MDNetworkParticipant(const std::shared_ptr<uvw::tcp_handle
 
 MDNetworkParticipant::~MDNetworkParticipant()
 {
+    m_client->detach_handler();
     m_client->disconnect();
 }
 
