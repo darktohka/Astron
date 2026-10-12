@@ -41,7 +41,8 @@ class Datagram
     size_t buf_cap; // Can be larger than buf_offset, so use a size_t
     size_t buf_offset;
 
-    void check_add_length(dgsize_t len)
+    // len must be a size_t, to prevent size narrowing before the check happens
+    void check_add_length(size_t len)
     {
         size_t new_offset = buf_offset + len;
         if(new_offset > DGSIZE_MAX) {
@@ -106,7 +107,9 @@ class Datagram
     Datagram(const std::vector<uint8_t> &data) : buf(new uint8_t[data.size()]),
         buf_cap(data.size()), buf_offset(data.size())
     {
-        memcpy(buf, &data[0], data.size());
+        if (data.size() > 0) {
+            memcpy(buf, &data[0], data.size());
+        }
     }
 
     // binary-constructor(string):
@@ -384,15 +387,16 @@ class Datagram
     // a length tag (typically a uint16_t) is prepended to the string before it is added.
     void add_string(const std::string &str)
     {
-        add_size(str.length());
+        // Validate the length *before* writing the length tag.
         check_add_length(str.length());
+        add_size(str.length());
         memcpy(buf + buf_offset, str.c_str(), str.length());
         buf_offset += str.length();
     }
     void add_string(const char* str, dgsize_t length)
     {
-        add_size(length);
         check_add_length(length);
+        add_size(length);
         memcpy(buf + buf_offset, str, length);
         buf_offset += length;
     }
@@ -401,22 +405,28 @@ class Datagram
     // a length tag (typically a uint16_t) is prepended to the blob before it is added.
     void add_blob(const std::vector<uint8_t> &blob)
     {
-        add_size(blob.size());
+        // Validate the length *before* writing the length tag.
         check_add_length(blob.size());
-        memcpy(buf + buf_offset, &blob[0], blob.size());
-        buf_offset += blob.size();
+        add_size(blob.size());
+
+        if (blob.size() > 0) {
+            memcpy(buf + buf_offset, &blob[0], blob.size());
+            buf_offset += blob.size();
+        }
     }
     void add_blob(const uint8_t* data, dgsize_t length)
     {
-        add_size(length);
+        // Validate the length *before* writing the length tag.
         check_add_length(length);
+        add_size(length);
         memcpy(buf + buf_offset, data, length);
         buf_offset += length;
     }
     void add_blob(DatagramHandle dg)
     {
-        add_size(dg->buf_offset);
+        // Validate the length *before* writing the length tag.
         check_add_length(dg->buf_offset);
+        add_size(dg->buf_offset);
         memcpy(buf + buf_offset, dg->buf, dg->buf_offset);
         buf_offset += dg->buf_offset;
     }
