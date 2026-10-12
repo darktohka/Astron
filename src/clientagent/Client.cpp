@@ -36,6 +36,8 @@ Client::Client(ConfigNode, ClientAgent* client_agent) :
 
 Client::~Client()
 {
+    m_lifetime->invalidate();
+
     // We need to be holding our own lock, just in case another thread is busy
     // doing some last-microsecond cleanup.
     lock_guard<recursive_mutex> lock(m_client_lock);
@@ -96,8 +98,15 @@ void Client::generate_timeout(TimeoutSetCallback timeout_set_callback)
     }
 
     if(std::this_thread::get_id() != g_main_thread_id) {
-        TaskQueue::singleton.enqueue_task([self = this]() {
-            self->generate_timeouts();
+        // We are not on the main thread, so we have to defer the
+        // creation of the timeout on the main thread.
+        LifetimeGuardPtr lifetime = m_lifetime;
+        TaskQueue::singleton.enqueue_task([this, lifetime]() {
+            std::lock_guard<std::recursive_mutex> lock(lifetime->mutex);
+            if(!lifetime->alive.load()) {
+                return;
+            }
+            generate_timeouts();
         });
     } else {
         generate_timeouts();
@@ -800,8 +809,15 @@ bool Client::try_queue_pending(doid_t do_id, DatagramHandle dg)
     auto it = m_pending_objects.find(do_id);
     if(it != m_pending_objects.end()) {
         // the dg should be queued under the appropriate iop
-        m_pending_interests.find(it->second)->second->queue_datagram(dg);
-        return true;
+        auto interest_it = m_pending_interests.find(it->second);
+        if(interest_it != m_pending_interests.end()) {
+            interest_it->second->queue_datagram(dg);
+            return true;
+        }
+        // The interest operation that was buffering this object is gone;
+        // drop the stale association instead of dereferencing a dangling
+        // request_context.
+        m_pending_objects.erase(it);
     }
     // still no idea what do_id was being talked about
     return false;
@@ -882,12 +898,25 @@ InterestOperation::InterestOperation(
     m_timeout_interval(timeout)
 {
     m_callers.insert(m_callers.end(), caller);
-    m_client->generate_timeout(bind(&InterestOperation::on_timeout_generate, this,
-                               std::placeholders::_1));
+
+    // The timeout has to be created on the main thread.
+    LifetimeGuardPtr lifetime = m_lifetime;
+    m_client->generate_timeout([this, lifetime](Timeout* timeout) {
+        std::lock_guard<std::recursive_mutex> lock(lifetime->mutex);
+        if(!lifetime->alive.load()) {
+            // We were destroyed before our timeout could be created.
+            // Discard the freshly allocated Timeout.
+            delete timeout;
+            return;
+        }
+        on_timeout_generate(timeout);
+    });
 }
 
 InterestOperation::~InterestOperation()
 {
+    m_lifetime->invalidate();
+
     lock_guard<recursive_mutex> lock(m_client->m_client_lock);
 
     assert(m_finished);
@@ -895,7 +924,6 @@ InterestOperation::~InterestOperation()
 
 void InterestOperation::on_timeout_generate(Timeout* timeout)
 {
-    lock_guard<recursive_mutex> lock(m_client->m_client_lock);
     assert(std::this_thread::get_id() == g_main_thread_id);
 
     m_timeout = timeout;
@@ -913,6 +941,11 @@ void InterestOperation::timeout()
 void InterestOperation::finish(bool is_timeout)
 {
     lock_guard<recursive_mutex> lock(m_client->m_client_lock);
+
+    // Hold the lifetime lock across the entire teardown.
+    LifetimeGuardPtr lifetime = m_lifetime;
+    std::lock_guard<std::recursive_mutex> timeout_lock(lifetime->mutex);
+    lifetime->alive.store(false);
 
     if(!is_timeout && m_timeout != nullptr) {
         if(!m_timeout->cancel()) {
@@ -949,6 +982,17 @@ void InterestOperation::finish(bool is_timeout)
 
     // Delete the Interest Operation
     m_client->m_pending_interests.erase(m_request_context);
+
+    // Any objects that were still being buffered under this operation no
+    // longer belong to a pending interest. Clear those associations now.
+    for(auto it = m_client->m_pending_objects.begin();
+            it != m_client->m_pending_objects.end(); ) {
+        if(it->second == m_request_context) {
+            it = m_client->m_pending_objects.erase(it);
+        } else {
+            ++it;
+        }
+    }
 
     // Dispatch other received and queued messages
     for(const auto& it : dispatch) {

@@ -3,6 +3,7 @@
 #include "messagedirector/MessageDirector.h"
 #include "util/EventSender.h"
 #include "util/Timeout.h"
+#include "util/LifetimeGuard.h"
 
 #include <vector>
 #include <queue>
@@ -71,6 +72,10 @@ class InterestOperation
 
     unsigned long m_timeout_interval;
     Timeout* m_timeout = nullptr;
+
+    // Guards the timeout callback against this operation being destroyed while
+    // the callback is still queued to be run on the main thread
+    LifetimeGuardPtr m_lifetime = std::make_shared<LifetimeGuard>();
 
     bool m_has_total = false;
     doid_t m_total = 0; // as doid_t because <max_objs_in_zones> == <max_total_objs>
@@ -146,6 +151,10 @@ class Client : public MDParticipantInterface
 
     std::mutex m_timeout_mutex;
     std::queue<TimeoutSetCallback> m_pending_timeouts;
+
+    // Guards the deferred generate_timeouts() task against this Client being
+    // destroyed before the task runs on the main thread.
+    LifetimeGuardPtr m_lifetime = std::make_shared<LifetimeGuard>();
 
     Client(ConfigNode config, ClientAgent* client_agent);
 

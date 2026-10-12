@@ -4,6 +4,7 @@
 #include <memory>
 #include <uvw.hpp>
 #include "util/TaskQueue.h"
+#include "util/LifetimeGuard.h"
 
 // This class abstracts the uvw::timer_handle timer in order to provide a generic
 // facility for timeouts. Once constructed, this class will wait a certain
@@ -50,6 +51,10 @@ class Timeout
     unsigned long m_timeout_interval;
 
     std::atomic<bool> m_callback_disabled;
+
+    // Guards against a deferred cancel() task (posted to the main thread from
+    // another thread) running after this Timeout has already deleted itself.
+    LifetimeGuardPtr m_lifetime = std::make_shared<LifetimeGuard>();
 
     void setup();
     void destroy_timer();

@@ -45,6 +45,7 @@ void Timeout::destroy_timer()
         m_timer = nullptr;
     }
 
+    m_lifetime->invalidate();
     delete this;
 }
 
@@ -76,8 +77,16 @@ bool Timeout::cancel()
     const bool already_cancelled = !m_callback_disabled.exchange(true);
 
     if(std::this_thread::get_id() != g_main_thread_id) {
-        TaskQueue::singleton.enqueue_task([self = this]() {
-            self->cancel();
+        // Defer the cancellation to the main thread.
+        // Guard the task at the same time.
+        LifetimeGuardPtr lifetime = m_lifetime;
+        TaskQueue::singleton.enqueue_task([this, lifetime]() {
+            std::lock_guard<std::recursive_mutex> lock(lifetime->mutex);
+            if(!lifetime->alive.load()) {
+                // We have already been destroyed. Nothing to cancel.
+                return;
+            }
+            cancel();
         });
 
         return already_cancelled;
@@ -92,5 +101,6 @@ bool Timeout::cancel()
 
 Timeout::~Timeout()
 {
+    m_lifetime->invalidate();
     assert(m_callback_disabled.load());
 }
